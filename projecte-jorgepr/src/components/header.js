@@ -1,8 +1,8 @@
-export {buildMenu};
+export { buildMenu };
 
 const buildMenu = () => {
   const divWrapper = document.createElement("div");
-  
+
   const menu = `<nav class="navbar navbar-expand-lg bg-light">
   <div class="container-fluid">
     <a class="navbar-brand" href="#">Movies 2024</a>

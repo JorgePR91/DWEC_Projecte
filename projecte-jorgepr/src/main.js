@@ -1,9 +1,12 @@
-import './style.scss'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+import "./style.scss";
+import javascriptLogo from "./javascript.svg";
+import viteLogo from "/vite.svg";
+import { setupCounter } from "./counter.js";
 
 //import * as bootstrap from "bootstrap";
+//import "bootstrap/dist/css/bootstrap.min.css";
+import * as bootstrap from 'bootstrap';  // opcional, si usas el JS de Bootstrap
+
 import { buildMenu } from "./components/header.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -12,5 +15,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   containerDiv.innerHTML = "";
   menuDiv.append(buildMenu());
 });
-
-
