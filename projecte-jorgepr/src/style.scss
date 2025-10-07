@@ -8,14 +8,14 @@
       max-width: 100vw;
   max-height: 100vh;
     display: grid;
-    grid-template-columns: repeat(30, 1fr); 
+    grid-template-columns: repeat(20, 1fr); 
     background: #444;        
   }
 
   .celda {
     padding: 0;
     margin: 0;
-    min-width: 10px;
+    min-width: 30px;
     aspect-ratio: 1 ;        
     overflow: hidden;             
     //display: flex;

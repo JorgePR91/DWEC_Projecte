@@ -1,22 +1,27 @@
 /* eslint-disable no-undef */
-export { inici, renderContent };
-
-//Necessitem tres poss= cap (fa l'acció), cua (per a eliminar-se), coll
 
 //FUNCIÓ D'INICI
-function inici() {
-  let canvas = crearCanvas(10);
+export function inici(volum) {
+  const canvas = crearCanvas(volum);
 
+  //POSSICIÓ INICIAL DE LA SERP
+  let posicioInicialX = Math.floor(canvas.length / 2);
+  let posicioInicialY = Math.floor(canvas.length / 2);
 
-  afegirPoma(canvas);
-  pintar(Math.floor(canvas.length / 2), Math.floor(canvas.length / 2), "serp");
-
-  document.addEventListener("keydown", (event, canvas) => {
+  canvas[posicioInicialX][posicioInicialY].pos = 1;
+  pintar(posicioInicialX, posicioInicialY, "serp");
+  //MOVIMENT DE LA SERP
+  document.addEventListener("keydown", (event) => {
     moviment(event, canvas);
   });
+
+  afegirPoma(canvas);
+
+  //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
+
 }
 
-function crearCanvas(volum = 30) {
+function crearCanvas(volum = 20) {
   //El map sols opera amb elements existents, així que si no l'omplim no entra
 
   return new Array(volum).fill(null).map((_, y) =>
@@ -31,7 +36,10 @@ function crearCanvas(volum = 30) {
 
 //FUNCIONS DE MOVIEMNT DE LA SERP
 function moviment(event, canvas) {
-  let cap = canvas.filter((c) => c.pos == 1);
+  
+  let cap = canvas.filter((c) => c.pos === 1).get();
+
+  if(!cap) return;
 
   switch (event.key) {
     case "ArrowUp":
@@ -94,8 +102,9 @@ function moviment(event, canvas) {
 }
 
 function comprovarLimit(pos, canvas) {
-  if (pos >= canvas.size || pos <= 0) return true;
-  else return false;
+  if (pos >= canvas.length) return true;
+  if(pos < 0) return true;
+  return false;
 }
 
 function disminuir(canvas) {
@@ -108,7 +117,6 @@ function disminuir(canvas) {
 function afegirPoma(canvas) {
 console.log("Afegint poma...")
 
-  //OJO SI EL RANDOM TRAU 0
   let x = Math.floor(Math.random() * canvas.length);
   let y = Math.floor(Math.random() * canvas.length);
 
@@ -132,18 +140,22 @@ console.log("Afegint poma...")
   }
 }
 
-//FUNCIÓ DE CREIXEMENT DE LA SERP
-// function creixer(canvas, pos){
-//      canvas.filter(e => e.pos > 0).max;
-// }
+//FUNCIÓ RECERCA AL GRID
+function recercaGrid(canvas, atribut, criteri){
+  for(let col of canvas )
+    for(let element of col){
+      if(element[atribut] === criteri){
+        return element;
+      }
+    }
+    return null;
+  }
 
-//FUNCIÓ D'EFECTE DE MENJAR
-// function menjar(canvas){
-//   creixer(canvas);
-// }
 
 //FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
-function renderContent(volum) {
+export function renderContent(volum = 30) {
+console.log("Canvas volum: "+volum)
+
   let canvas = crearCanvas(volum);
 console.log("Render canvas...")
   return `
