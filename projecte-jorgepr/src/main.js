@@ -9,12 +9,20 @@ import { renderContent, inici } from "./components/content";
 
 document.addEventListener("DOMContentLoaded", async () => {
   
+window.addEventListener('error', e => {
+  console.error('❌ Error atrapado globalmente:', e.error || e.message);
+});
+
+window.addEventListener('unhandledrejection', e => {
+  console.error('❌ Error en promesa no manejada:', e.reason);
+});
+
   //const appDiv = document.querySelector('#app');
   const menuDiv = document.querySelector('#menu');
   const containerDiv = document.querySelector("#container");
 
    menuDiv.innerHTML = renderHeader();
-   containerDiv.innerHTML = renderContent();
+   containerDiv.innerHTML = renderContent(10);
 
   let button = document.createElement('button');
   button.textContent = "Inici";
