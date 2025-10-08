@@ -37,7 +37,8 @@ function crearCanvas(volum = 20) {
 //FUNCIONS DE MOVIEMNT DE LA SERP
 function moviment(event, canvas) {
   
-  let cap = canvas.filter((c) => c.pos === 1).get();
+  let cap;
+  for(let fila of canvas ) for(let element of fila) if(element.pos === 1) cap = element;
 
   if(!cap) return;
 
@@ -47,7 +48,9 @@ function moviment(event, canvas) {
         if (comprovarLimit(cap.y--, canvas)) {
           disminuir(canvas);
         } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
+  //canvas.filter((c) => c.pos > 0).map((c) => c.pos++); -FILTER NO ATÉN ALS ARRAYS 2D, PER TANT AVALUA LES FILES. DEURÍEM FER UN FLAT() PERÒ AÇÒ SUPOSARIA UNA CÒPIA DE L'ARRAY, OMPLINT MÉS MEMÒRIA. FOREACH MÉS EFECTIU, I FOR MÉS ENCARA PERQUÈ FOR NO FA UNA VARIABLE 
+  for(let fila of canvas ) for(let element of fila) if(element.pos > 0) element.pos++;
+
           canvas[cap.x][cap.y--].pos++;
           pintar(cap.x, cap.y--, "serp");
           canvas[cap.x][cap.y--].estat !== null
@@ -61,7 +64,7 @@ function moviment(event, canvas) {
         if (comprovarLimit(cap.x++, canvas)) {
           disminuir(canvas);
         } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
+  for(let fila of canvas ) for(let element of fila) if(element.pos > 0) element.pos++;
           canvas[cap.x++][cap.y].pos++;
           pintar(cap.x++, cap.y, "serp");
           canvas[cap.x++][cap.y].estat !== null
@@ -75,7 +78,7 @@ function moviment(event, canvas) {
         if (comprovarLimit(cap.y++, canvas)) {
           disminuir(canvas);
         } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
+  for(let fila of canvas ) for(let element of fila) if(element.pos > 0) element.pos++;
           canvas[cap.x][cap.y++].pos++;
           pintar(cap.x, cap.y++, "serp");
           canvas[cap.x][cap.y++].estat !== null
@@ -89,7 +92,7 @@ function moviment(event, canvas) {
         if (comprovarLimit(cap.x--, canvas)) {
           disminuir(canvas);
         } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
+  for(let fila of canvas ) for(let element of fila) if(element.pos > 0) element.pos++;
           canvas[cap.x--][cap.y].pos++;
           pintar(cap.x--, cap.y, "serp");
           canvas[cap.x--][cap.y].estat !== null
@@ -108,6 +111,10 @@ function comprovarLimit(pos, canvas) {
 }
 
 function disminuir(canvas) {
+  let cua;
+  for(let fila of canvas ) for(let element of fila) if(element.pos > 0) element.pos++;
+
+
   let cua = canvas.filter((c) => c.pos > 0).max;
   cua.pos = 0;
   borrar(cua.x, cua.y, "serp");
@@ -142,8 +149,8 @@ console.log("Afegint poma...")
 
 //FUNCIÓ RECERCA AL GRID
 function recercaGrid(canvas, atribut, criteri){
-  for(let col of canvas )
-    for(let element of col){
+  for(let fila of canvas )
+    for(let element of fila){
       if(element[atribut] === criteri){
         return element;
       }
