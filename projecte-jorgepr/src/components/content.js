@@ -2,7 +2,7 @@
 
 //FUNCIÓ D'INICI
 export function inici(volum) {
-  const canvas = crearCanvas(volum);
+  let canvas = crearCanvas(volum);
 
   //POSSICIÓ INICIAL DE LA SERP
   let posicioInicialX = Math.floor(canvas.length / 2);
@@ -12,20 +12,11 @@ export function inici(volum) {
   canvas[posicioInicialX][posicioInicialY].estat = "serp";
   pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
   afegirPoma(canvas);
-
+let interval;
   //MOVIMENT DE LA SERP
   document.addEventListener("keydown", (event) => {
-    moviment(event, canvas);
-
-    console.log("Moviment");
-
-    for (let fila of canvas) {
-      for (let element of fila) {
-        if (element.estat === "serp") {
-          console.log(element);
-        }
-      }
-    }
+   clearInterval(interval);
+     interval  = setInterval(() => moviment(event, canvas), 200); 
   });
 
   //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
@@ -232,21 +223,11 @@ function finalitzarJoc() {
   console.log("S'acabó");
 }
 
-/*Notas:
-
-🔍 Análisis del problema:
-.filter(c => c.pos > 0) ✅ — bien, esto filtra los objetos con pos > 0.
-.sort() ❌ — aquí está el problema.
-Sin un comparador, Array.prototype.sort() ordena alfabéticamente, no numéricamente, y además lo hace sobre la representación en string del objeto (ejemplo: "[object Object]"), lo cual no tiene sentido en este contexto.
-Incluso si lo hiciera con números, no sabe que debe usar la propiedad pos.
-.reverse()[0] — toma el primer objeto tras revertir. Pero si sort() falló, esto no sirve.
-
-🧠 ¿Por qué usar reduce?
-Porque es eficiente: recorre el array solo una vez, sin ordenar, y sin crear nuevos arrays. Ideal cuando quieres "resumir" muchos elementos en uno solo (de ahí su nombre).
-
-Explicación del reduce:
-max: el valor acumulado hasta ahora (el "mejor" objeto que hemos visto).
-curr: el objeto actual que estamos evaluando.
-curr.pos > max.pos ? curr : max: si el objeto actual tiene un pos mayor que el "máximo hasta ahora", lo reemplaza.
-💡 Es como decir: “Si el que tengo ahora es mejor, me lo quedo”.
-*/
+//MÈTODE COMPROVACIÓ SERP
+    /*for (let fila of canvas) {
+      for (let element of fila) {
+        if (element.estat === "serp") {
+          console.log(element);
+        }
+      }
+    }*/

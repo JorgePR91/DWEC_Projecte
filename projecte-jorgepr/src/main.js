@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   menuDiv.innerHTML = renderHeader();
 
   const containerDiv = document.querySelector("#container");
-  const volum = 5;
+  const volum = 10;
 
   //AÇÒ POT DUPLICAR EL ROUTER PERQUÈ CRIDES A LA FUNCIÓ INNERHTML EN EL RUTER I SUBSTITUEIX TOT EL DIV
   //PER A QUE NO ES RENDERITZE TOT DOS VEGADES SOLES RENDERITZEM AMB EL ROUTER, RES DE INNERHTML RENDERCONTENT
