@@ -1,5 +1,6 @@
 export {renderRegister}
 
 function renderRegister(){
-    return `<h1>Register</h1>`
+    const codi = `<h1>Register</h1>`
+    return {codi}   ;
 }

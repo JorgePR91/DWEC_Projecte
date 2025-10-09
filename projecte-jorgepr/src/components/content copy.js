@@ -10,11 +10,9 @@ export function inici(volum) {
 
   canvas[posicioInicialX][posicioInicialY].pos = 1;
   pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
-  afegirPoma(canvas);
 
   //MOVIMENT DE LA SERP
   document.addEventListener("keydown", (event) => {
-    console.log("moviment");
     moviment(event, canvas);
   });
 
@@ -36,12 +34,15 @@ function crearCanvas(volum = 20) {
 
 //FUNCIONS DE MOVIEMNT DE LA SERP
 function moviment(event, canvas) {
+  console.log("Moviment");
+
   let cap;
 
   for (let fila of canvas)
     for (let element of fila) if (element.pos === 1) cap = element;
-  console.log(`Cap: `);
-  console.log(cap);
+
+console.log(`Cap: `)
+console.log(cap)
 
   if (!cap) return;
 
@@ -52,18 +53,17 @@ function moviment(event, canvas) {
         if (comprovarLimit(coordNoves, canvas)) {
           disminuir(canvas);
         } else {
+
           for (let fila of canvas)
-            for (let element of fila) if (element.pos > 0) element.pos++;
+            for (let element of fila) if (element.pos > 0) element.pos+=1;
 
-          canvas[coordNoves.x][coordNoves.y].pos++;
+          canvas[coordNoves.x][coordNoves.y].pos+=1;
           pintar(coordNoves, "serp");
-
-          canvas[coordNoves.x][coordNoves.y].estat === "poma"
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
+          borrar(cap, "serp");
         }
-      }
-      break;
+        break;
+      };
+
     case "ArrowRight":
       {
         let coordNoves = { x: cap.x + 1, y: cap.y };
@@ -76,12 +76,9 @@ function moviment(event, canvas) {
           canvas[coordNoves.x][coordNoves.y].pos++;
           pintar(coordNoves, "serp");
 
-          canvas[coordNoves.x][coordNoves.y].estat === "poma"
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
         }
-      }
-      break;
+              break;
+      };
     case "ArrowDown":
       {
         let coordNoves = { x: cap.x, y: cap.y + 1 };
@@ -94,12 +91,9 @@ function moviment(event, canvas) {
           canvas[coordNoves.x][coordNoves.y].pos++;
           pintar(coordNoves, "serp");
 
-          canvas[coordNoves.x][coordNoves.y].estat === "poma"
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
         }
-      }
-      break;
+              break;
+      };
     case "ArrowLeft":
       {
         let coordNoves = { x: cap.x - 1, y: cap.y };
@@ -111,12 +105,10 @@ function moviment(event, canvas) {
             for (let element of fila) if (element.pos > 0) element.pos++;
           canvas[coordNoves.x][coordNoves.y].pos++;
           pintar(coordNoves, "serp");
-          canvas[coordNoves.x][coordNoves.y].estat === "poma"
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
         }
-      }
-      break;
+              break;
+      };
+
   }
 }
 
@@ -127,63 +119,20 @@ function comprovarLimit(pos, canvas) {
 }
 
 function disminuir(canvas) {
-  //let cua;
-  // for (let fila of canvas)
-  //   for (let element of fila) if (element.pos > 0) element.pos++;
 
   let cua = canvas
     .flat()
     .reduce((accumulador, actual) =>
       actual.pos >= accumulador.pos ? actual : accumulador
     );
-    
   cua.pos = 0;
-  console.log("Cua:");
-  console.log(cua);
+  console.log('Cua:')
+  console.log(cua)
 
   borrar(cua, "serp");
 }
 
-//FUNCIÓ DE AFEGIR ELEMENTS(SOLS 1 DE TIPUS)
-function afegirPoma(canvas) {
-  console.log("Afegint poma...");
-
-  let x = Math.floor(Math.random() * canvas.length);
-  let y = Math.floor(Math.random() * canvas.length);
-
-  let poma;
-  
-    for (let fila of canvas)
-      for (let element of fila) if (element.estat === "poma") poma =  element;
-    console.log('poma');
-
-  console.log(poma);
-
-  if (poma) {
-    borrar(poma, "poma");
-    poma.estat = null;
-    console.log(poma)
-  }
-
-  if (canvas[x][y].estat === null) {
-    canvas[x][y].estat = "poma";
-    pintar({ x: x, y: y }, "poma");
-  } else if (canvas.flat().filter((e) => e.estat === null).length == 0) {
-    finalitzarJoc();
-  } else {
-    afegirPoma(canvas);
-  }
-}
-
 export function renderContent(volum) {
-  // let gameDiv = document.createElement("div");
-  // gameDiv.setAttribute("id", "gameContainer");
-  // gameDiv.classList.add("container");
-  // gameDiv.classList.add("board-wrapper");
-
-  // document.getElementById("container").appendChild(gameDiv);
-
-  // gameDiv.innerHTML = renderCanvas(volum);
 
   const codi = `<div id="gameContainer" class="container board-wrapper">
     ${renderCanvas(volum)}
@@ -203,6 +152,7 @@ export function renderContent(volum) {
 
   return { codi, muntatge };
 }
+
 //FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
 export function renderCanvas(volum = 30) {
   console.log("Render canvas...");
@@ -212,7 +162,7 @@ export function renderCanvas(volum = 30) {
   for (let i = 0; i < volum; i++) {
     contingut += `<div class="columna">`;
     for (let j = 0; j < volum; j++) {
-      contingut += `<div id="x${i}y${j}" class="celda"></div>`;
+      contingut += `<div id="${i}${j}" class="celda"></div>`;
     }
     contingut += `</div>`;
   }
@@ -225,7 +175,7 @@ export function renderCanvas(volum = 30) {
 }
 
 function pintar(coord, forma) {
-  let id = "x" + coord.x +"y"+ coord.y;
+  let id = "" + coord.x + coord.y;
 
   let casella = document.getElementById(id);
   console.log("A pintar " + "#" + id + " forma: " + forma);
@@ -237,40 +187,19 @@ function pintar(coord, forma) {
 }
 
 function borrar(coord, forma) {
-  let id = "x" + coord.x +"y"+ coord.y;
+  let id = "" + coord.x + coord.y;
 
   let casella = document.getElementById(id);
 
   console.log("A borrar " + "#" + id + " forma: " + forma);
 
   casella.classList.remove(forma);
-
   console.log(casella);
-  
-  if(typeof coord == 'object')
-  coord.estat = null;
+
+  casella.estat = null;
 }
 
 //FUNCIÓ DE FINALITZAR JOC
 function finalitzarJoc() {
   console.log("S'acabó");
 }
-
-/*Notas:
-
-🔍 Análisis del problema:
-.filter(c => c.pos > 0) ✅ — bien, esto filtra los objetos con pos > 0.
-.sort() ❌ — aquí está el problema.
-Sin un comparador, Array.prototype.sort() ordena alfabéticamente, no numéricamente, y además lo hace sobre la representación en string del objeto (ejemplo: "[object Object]"), lo cual no tiene sentido en este contexto.
-Incluso si lo hiciera con números, no sabe que debe usar la propiedad pos.
-.reverse()[0] — toma el primer objeto tras revertir. Pero si sort() falló, esto no sirve.
-
-🧠 ¿Por qué usar reduce?
-Porque es eficiente: recorre el array solo una vez, sin ordenar, y sin crear nuevos arrays. Ideal cuando quieres "resumir" muchos elementos en uno solo (de ahí su nombre).
-
-Explicación del reduce:
-max: el valor acumulado hasta ahora (el "mejor" objeto que hemos visto).
-curr: el objeto actual que estamos evaluando.
-curr.pos > max.pos ? curr : max: si el objeto actual tiene un pos mayor que el "máximo hasta ahora", lo reemplaza.
-💡 Es como decir: “Si el que tengo ahora es mejor, me lo quedo”.
-*/

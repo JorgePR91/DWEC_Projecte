@@ -1,0 +1,753 @@
+main.js
+---------------------------------------------------------------------------------------------------------
+import "./style.scss";
+import { router } from "./router";
+
+import { renderHeader } from "./components/header";
+import { inici } from "./components/content";
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  
+window.addEventListener('error', e => {
+  console.error('❌ Error atrapado globalmente:', e.error || e.message);
+});
+
+window.addEventListener('unhandledrejection', e => {
+  console.error('❌ Error en promesa no manejada:', e.reason);
+});
+
+  const menuDiv = document.querySelector('#menu');
+  const containerDiv = document.querySelector("#container");
+
+  menuDiv.innerHTML = renderHeader();
+
+  // Render a single time through the router, passing the desired board size (volum)
+  const volum = 20;
+  router(window.location.hash || '#game', containerDiv, volum);
+
+  // Create the start button AFTER the board has been rendered so it isn't removed
+  let button = document.createElement('button');
+  button.textContent = "Inici";
+  containerDiv.appendChild(button);
+
+  // Do NOT call inici immediately when attaching the listener. Pass a function.
+  button.addEventListener('click', () => inici(volum));
+  window.addEventListener("hashchange", () => {
+    router(window.location.hash, containerDiv);
+  });
+});
+
+router.js
+----------------------------------------------------------------------------------
+import { renderContent } from "./components/content";
+import { renderLogin } from "./components/login";
+import { renderRegister } from "./components/register";
+
+export {router}
+
+const routes = new Map([
+    ['#',renderContent],
+    ['#game',renderContent],
+    ['#login',renderLogin],
+    ['#register',renderRegister]
+])
+
+
+function router(route,container,volum){
+    if(routes.has(route)){
+        // If the route's renderer accepts a volum parameter, pass it; otherwise call without args
+        const renderer = routes.get(route);
+        try{
+            container.innerHTML = renderer.length > 0 ? renderer(volum) : renderer();
+        } catch {
+            // Fallback: try calling without args
+            container.innerHTML = renderer();
+        }
+    }
+    else {
+        container.innerHTML = `<h2>Error 404: error al carregar la pàgina</h2>`
+    }
+}
+content.js
+-----------------------------------------------------------------------------------
+//Necessitem tres poss= cap (fa l'acció), cua (per a eliminar-se), coll
+
+//FUNCIÓ D'INICI
+export function inici(volum) {
+  const canvas = crearCanvas(volum);
+
+  afegirPoma(canvas);
+  // colocar la cabeza en el centro
+  const cx = Math.floor(canvas.length / 2);
+  const cy = Math.floor(canvas.length / 2);
+  // marcar la cabeza con pos = 1
+  canvas[cy][cx].pos = 1;
+  pintar(cx, cy, "serp");
+
+  // registrar listener que captura el canvas por cierre léxico
+  document.addEventListener("keydown", (event) => {
+    moviment(event, canvas);
+  });
+
+  // devolver el canvas por si se quiere usar
+  return canvas;
+}
+
+function crearCanvas(volum = 20) {
+  //El map sols opera amb elements existents, així que si no l'omplim no entra
+console.log("Tamany: "+volum);
+  const grid = [];
+  for (let y = 0; y < volum; y++) {
+    const row = [];
+    for (let x = 0; x < volum; x++) {
+      row.push({ x, y, estat: null, pos: 0 });
+    }
+    grid.push(row);
+  }
+  return grid;
+}
+
+//FUNCIONS DE MOVIEMNT DE LA SERP
+function moviment(event, canvas) {
+  // encontrar la casilla con pos == 1 (cabeza)
+  let head = null;
+  for (let y = 0; y < canvas.length; y++) {
+    for (let x = 0; x < canvas[y].length; x++) {
+      if (canvas[y][x].pos === 1) {
+        head = { x, y };
+        break;
+      }
+    }
+    if (head) break;
+  }
+
+  if (!head) return; // nada que mover
+
+  switch (event.key) {
+    case "ArrowUp":
+      {
+        const nx = head.x;
+        const ny = head.y - 1;
+        if (comprovarLimit(ny, canvas)) {
+          disminuir(canvas);
+        } else {
+          // incrementar pos de cada parte de la serpiente
+          for (let row of canvas) for (let cell of row) if (cell.pos > 0) cell.pos++;
+          canvas[ny][nx].pos = 1;
+          pintar(nx, ny, "serp");
+          if (canvas[ny][nx].estat === "poma") afegirPoma(canvas);
+          else disminuir(canvas);
+        }
+      }
+      break;
+    case "ArrowRight":
+      {
+        const nx = head.x + 1;
+        const ny = head.y;
+        if (comprovarLimit(nx, canvas)) {
+          disminuir(canvas);
+        } else {
+          for (let row of canvas) for (let cell of row) if (cell.pos > 0) cell.pos++;
+          canvas[ny][nx].pos = 1;
+          pintar(nx, ny, "serp");
+          if (canvas[ny][nx].estat === "poma") afegirPoma(canvas);
+          else disminuir(canvas);
+        }
+      }
+      break;
+    case "ArrowDown":
+      {
+        const nx = head.x;
+        const ny = head.y + 1;
+        if (comprovarLimit(ny, canvas)) {
+          disminuir(canvas);
+        } else {
+          for (let row of canvas) for (let cell of row) if (cell.pos > 0) cell.pos++;
+          canvas[ny][nx].pos = 1;
+          pintar(nx, ny, "serp");
+          if (canvas[ny][nx].estat === "poma") afegirPoma(canvas);
+          else disminuir(canvas);
+        }
+      }
+      break;
+    case "ArrowLeft":
+      {
+        const nx = head.x - 1;
+        const ny = head.y;
+        if (comprovarLimit(nx, canvas)) {
+          disminuir(canvas);
+        } else {
+          for (let row of canvas) for (let cell of row) if (cell.pos > 0) cell.pos++;
+          canvas[ny][nx].pos = 1;
+          pintar(nx, ny, "serp");
+          if (canvas[ny][nx].estat === "poma") afegirPoma(canvas);
+          else disminuir(canvas);
+        }
+      }
+      break;
+  }
+}
+
+function comprovarLimit(pos, canvas) {
+  // pos is a number (x or y); canvas is grid
+  if (pos < 0) return true;
+  if (pos >= canvas.length) return true;
+  return false;
+}
+
+function disminuir(canvas) {
+  // encontrar la pieza de mayor pos (cola)
+  let maxPos = 0;
+  let tail = null;
+  for (let row of canvas) for (let cell of row) if (cell.pos > maxPos) { maxPos = cell.pos; tail = cell; }
+  if (tail) {
+    tail.pos = 0;
+    borrar(tail.x, tail.y, "serp");
+  }
+}
+
+//FUNCIÓ DE AFEGIR ELEMENTS(SOLS 1 DE TIPUS)
+function afegirPoma(canvas) {
+console.log("Afegint poma...")
+
+  //OJO SI EL RANDOM TRAU 0
+  let x = Math.floor(Math.random() * canvas.length);
+  let y = Math.floor(Math.random() * canvas.length);
+
+  // buscar si ya hay una poma existente
+  let existing = null;
+  for (let row of canvas) for (let cell of row) if (cell.estat === 'poma') existing = cell;
+
+  if (canvas[y][x].estat === null) {
+    canvas[y][x].estat = "poma";
+    pintar(x, y, "poma");
+
+    if (existing) {
+      // borrar la poma anterior
+      borrar(existing.x, existing.y, "poma");
+      existing.estat = null;
+    }
+  } else {
+    // si la casilla no está libre, intentar otra posición
+    // detectar si ya no hay celdas libres
+    let freeExists = false;
+    for (let row of canvas) for (let cell of row) if (cell.estat === null) freeExists = true;
+    if (!freeExists) finalitzarJoc();
+    else afegirPoma(canvas);
+  }
+}
+
+//FUNCIÓ DE CREIXEMENT DE LA SERP
+// function creixer(canvas, pos){
+//      canvas.filter(e => e.pos > 0).max;
+// }
+
+//FUNCIÓ D'EFECTE DE MENJAR
+// function menjar(canvas){
+//   creixer(canvas);
+// }
+
+//FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
+export function renderContent(volum = 30) {
+console.log("Canvas volum: "+volum)
+
+  let canvas = crearCanvas(volum);
+console.log("Render canvas...")
+  return `
+<div class="container board-wrapper">
+  <div class="board">
+  ${canvas
+    .map(
+      (f, indexY) => `<div class="columna">
+      ${f.map((_, indexX) => `<div id="${"" + indexX + indexY}" class="celda"></div>`).join("")}
+      </div>`
+    )
+    .join("")}
+  </div>
+</div>
+    `;
+}
+
+function pintar(x, y, forma) {
+  let id = "" + x + y;
+  console.log(id);
+
+  let casella = document.getElementById(id);
+    console.log("A pintar " + "#" + id+" forma: "+forma);
+  casella.classList.add(forma);
+  console.log(casella);
+
+
+  casella.estat = forma;
+}
+
+function borrar(x, y, forma) {
+  let id = "" + x + y;
+
+  let casella = document.getElementById(id);
+
+  console.log("A borrar " + "#" + id+" forma: "+forma);
+
+  casella.classList.remove(forma);
+  console.log(casella);
+
+  casella.estat = null;
+}
+
+//FUNCIÓ DE FINALITZAR JOC
+function finalitzarJoc() {
+console.log("S'acabó")
+}
+
+//Canvas
+
+-----------------------------------------------------------------------------
+Quiero que me argumentes porqué mi modo de recorrer el array no és efectiva, si podría hacerse anteponiendo un flat (a la hora de recorrer el objeto encontrado ya tiene toda la información que necesitamos no es necesario recorrer-lo en orden), y porqué has optado por tu versión
+
+Primero añado un todo corto y lo marco como in-progress; después, cuando termine la explicación, lo marcaré como completado. Esto ayuda a cumplir la política de planificación.
+
+Se ha creado 1 tarea pendiente
+
+Voy a marcar la tarea como completada en la lista de tareas antes de darte la explicación final. Esto mantiene el seguimiento correcto. Luego te doy la explicación técnica y alternativas.
+
+Completado (1/1) Explicar recorrido del array
+
+Voy a explicar punto por punto por qué el modo original de recorrer la estructura no era efectivo, si usar flat() sería una buena solución y por qué elegí la versión que implementé. Daré también alternativas concretas y los trade‑offs (legibilidad, rendimiento, coherencia de índices).
+
+1) Qué estructura tienes y por qué importa
+Tu canvas es una matriz 2D: grid[y][x]. Cada celda es un objeto { x, y, estat, pos }.
+
+Esto implica dos cosas importantes:
+
+Para referenciar una casilla en DOM usas la combinación de coordenadas (x,y).
+Muchas operaciones lógicas (buscar cabeza, hallar cola, actualizar pos) son más naturales tratándolas como coordenadas 2D.
+El código original contenía intentos de tratar canvas como si fuera una lista plana de celdas (p. ej. canvas.filter(c => c.pos == 1)), y luego usaba propiedades/operaciones inexistentes (.max, .size) o indexación confusa. Esa mezcla produce bugs porque asumías una interfaz distinta a la real.
+
+2) ¿Por qué el recorrido original no era efectivo?
+Problemas concretos del enfoque original:
+
+Confusión entre dimensiones: llamar a .filter en canvas sólo aplica sobre las filas (cada elemento de canvas es una fila), no sobre todas las celdas, por tanto el filtro no devuelve las celdas esperadas. Eso lleva a cap indefinido o incorrecto.
+Métodos inexistentes o mal entendidos: .max, .size no son APIs válidas en Array JS; forzar usos así produce runtime errors o valores inesperados.
+Indexación con efectos laterales: usar expresiones como cap.x++ durante acceso puede modificar el valor en el momento de leerlo y provocar accesos fuera de rango o desplazamientos erróneos.
+Listener de teclado que no cierra canvas: (event, canvas) => ... no recibe canvas desde el event; por tanto se intentaba recorrer algo undefined.
+En resumen: el recorrido era frágil porque mezclaba suposiciones de una lista plana con una estructura 2D, y usaba operaciones no válidas.
+
+3) ¿Podríamos usar flat() para recorrer más fácilmente?
+Sí, convertir la matriz 2D a una lista plana con .flat() (o .flatMap()) puede simplificar búsquedas puntuales. Ejemplo:
+
+Para encontrar la casilla con pos === 1 (la cabeza): const headCell = canvas.flat().find(c => c.pos === 1); // headCell tiene {x, y, estat, pos} Esto funciona y es compacto: ya tienes el objeto que necesitas sin bucles anidados.
+Ventajas de usar flat():
+
+Código más conciso para búsquedas: find/filter/reduce funcionan directamente sobre las celdas.
+Evita escribir bucles anidados manuales.
+Útil cuando el orden de recorrido no importa (como encontrar un elemento por condición).
+Desventajas y consideraciones:
+
+Rendimiento: canvas.flat() crea un nuevo array plano que contiene todos los objetos; para tamaños pequeños-medios (ej. 20x20) la sobrecarga es mínima. Para tableros grandes o si llamas esto muchas veces por frame, es una copia nueva en memoria y puede penalizar.
+Pérdida del índice directo: al tener la celda (objeto) sí conoces x,y, pero si necesitas iterar en un orden espacial (p. ej. filas->columnas para render incremental) flat pierde la estructura de filas/columnas y hay que calcular índices si interesa ese orden.
+Mutaciones y referencias: la celda plana apunta al mismo objeto (no es copia profunda), así que modificar una propiedad de la celda plana afecta la grid original (esto puede ser bueno o peligroso según intención).
+Conclusión: usar .flat() es válido y cómodo para búsquedas puntuales; hay que tener en cuenta coste si se hace muchas veces por segundo.
+
+4) ¿Por qué opté por la versión con bucles anidados en mi parche?
+Elegí iterar explícitamente sobre filas y columnas (bucles anidados) por estas razones prácticas para este proyecto:
+
+Claridad de coordenadas: al iterar con indices [y][x] se mantiene la correspondencia directa con (x,y) usada en DOM (id = '' + x + y). Es menos probable equivocarse con índices y órdenes.
+Control de rendimiento: no se crean arrays intermedios (evita flat() que construye una nueva lista), lo que es mejor si la lógica de movimiento se ejecuta con frecuencia.
+Evitar llamadas repetidas a flat() en cada movimiento: durante movimiento actualicé pos de todos los segmentos (incrementar pos) — hacerlo sin crear una copia intermedia evita GC y uso innecesario de memoria.
+Multifuncionalidad: en operaciones como buscar la cola (máx pos) o incrementar pos de cada célula queremos recorrer todas las celdas. Un único bucle anidado lo hace de forma natural sin conversiones.
+En resumen: prioricé robustez y eficiencia razonable. Para un tablero pequeño/doméstico flat sería legible y rápido; para lógica de juego que puede ejecutarse repetidamente, evitar crear arrays temporales es preferible.
+
+5) Alternativas recomendables (con ejemplos y cuándo usarlas)
+A) Usar flat() sólo para búsquedas puntuales (rápido y legible)
+
+Buscar cabeza: const head = canvas.flat().find(c => c.pos === 1);
+Buscar cola: const tail = canvas.flat().reduce((best, c) => c.pos > (best?.pos ?? 0) ? c : best, null);
+Cuándo: si la frecuencia de llamadas es baja y quieres código corto.
+
+B) Mantener estructuras auxiliares (más eficiente)
+
+Mantener una lista de coordenadas de la serpiente, p. ej. snake = [{x,y}, {x,y}, ...] donde snake[0] es cabeza y el último es cola. Entonces:
+Mover = calcular nueva cabeza, unshift en snake, si no come poma pop() y actualizar clases DOM sólo en celdas afectadas.
+Buscar cabeza/cola es O(1) porque la lista mantiene los extremos.
+Cuándo: recomendable si quieres un juego eficiente y fácil para crecimiento/colisiones.
+
+C) Flat + caches: si quieres legibilidad y rendimiento medio
+
+Mantén flatGrid = canvas.flat() y actualízalo sólo cuando se re-crea el tablero; úsalo para búsquedas mientras no cambie la estructura principal.
+D) Mantener grid 2D + helpers
+
+Implementar funciones utilitarias:
+findCell(grid, predicate) { for ... return cell; }
+forEachCell(grid, fn) { for ... fn(cell); }
+Esto combina claridad con evitar crear arrays intermedios.
+
+6) Recomendación práctica para tu proyecto
+Si tu tablero es pequeño (20x20) y la lógica aún está en fase experimental, usar canvas.flat().find(...) para encontrar cabeza/poma es totalmente aceptable y te da código más conciso.
+Si vas a ejecutar movimiento muy frecuentemente (p. ej. cada frame o varias veces por segundo), cambia a:
+mantener una lista snakeCoords con la posición de la serpiente, o
+usar bucles anidados sin crear arrays temporales (como en mi parche).
+Además: evita re-renderizar todo el tablero con innerHTML cada vez; crea las celdas una vez y actualiza clases — así minimizas operaciones DOM y haces más eficiente la actualización.
+7) Ejemplo mínimo comparativo
+Con flat() para encontrar cabeza: const head = canvas.flat().find(c => c.pos === 1); if (head) { const {x,y} = head; /* usar coord */ }
+
+Con bucles anidados (mi enfoque): let head = null; for (let y = 0; y < canvas.length; y++) { for (let x = 0; x < canvas[y].length; x++) { if (canvas[y][x].pos === 1) { head = {x,y}; break; } } if (head) break; }
+
+Flat es más terso; la versión anidada es más explícita y evita copiar arrays.
+
+Si quieres, puedo:
+
+Refactorizar una pequeña utilidad findCell(grid, predicate) que internamente use flat() o bucles según un flag de rendimiento, así mantienes la llamada limpia en tu código.
+Implementar el patrón con snakeCoords (lista de coordenadas) y ajustar las funciones de pintar/borrar para actualizar sólo las celdas afectadas (esto aumentará mucho la eficiencia y claridad).
+Dime qué prefieres y lo implemento.
+
+--------------------------------------------------------------
+JorgePR91: Me crea el tablero pero no el botón, explícame porqué
+
+GitHub Copilot: Voy a inspeccionar el código relevante para ver por qué se crea el tablero pero no el botón: leeré `src/main.js`, `src/components/content.js`, `index.html`, `src/components/header.js` y `src/components/login.js` para localizar la lógica de creación del tablero y del botón. Espero encontrar dónde se monta el botón (o por qué no) y luego te explico la causa y la solución propuesta. Ahora actualizo la lista de tareas y empiezo con la inspección del código (marco la primera tarea como in-progress). 
+
+Se han creado 3 tareas pendientes
+
+Ejecutaré lecturas de los archivos listados para encontrar la causa. Leeré primero `src/main.js` y `src/components/content.js`. Después revisaré `index.html` y `src/components/header.js` y `login.js` si es necesario. Expected outcome: encontrar la función que crea el tablero y el botón (o su ausencia). 
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/main.js)
+
+Ahora leeré `src/router.js` y `src/components/content.js` para ver si el router sobrescribe el `containerDiv` o realiza otras manipulaciones que oculten o reemplacen el botón. 
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/router.js)
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/components/content.js)
+
+Ahora leeré `src/style.scss` para comprobar si hay reglas que puedan ocultar botones o que el `.container` tenga overflow o z-index que oculte el botón. También revisaré `index.html` para ver estructura del `#container`. Leeré esos archivos. 
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/style.scss)
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/index.html)
+
+Ahora leeré `src/components/header.js` y `src/components/login.js` para completar la inspección. 
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/components/header.js)
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/components/login.js)
+
+Marco la inspección como completada y actualizo el estado de la lista de tareas; no empiezo la corrección todavía. Luego te explico las causas probables y soluciones concretas. 
+
+Completado (1/3) *Inspeccionar código para encontrar creación del tablero y del botón*
+
+Voy a explicar por qué ves el tablero creado pero no el botón, basándome en la lectura del código que acabo de hacer. También te doy la(s) solución(es) concretas y los pasos para verificar.
+
+## Qué he revisado (rápido)
+- main.js
+- router.js
+- content.js
+- header.js
+- login.js
+- style.scss
+- index.html
+
+## Diagnóstico — por qué el tablero aparece pero el botón no
+He encontrado la causa principal: tu `router` sobrescribe el contenido del `containerDiv` justo antes de que añadas el botón. Secuencia relevante en main.js:
+
+1. Llamas a `router(window.location.hash+'#game', containerDiv, volum);`
+2. En `router()` haces `container.innerHTML = ruta(volum);` — esto genera el tablero HTML mediante `renderContent(volum)` (en content.js) y lo pone en `#container`.
+3. Después del `router(...)` en main.js haces:
+   - creas el `button` con `document.createElement('button')`
+   - `containerDiv.appendChild(button)`
+   - añades el listener al botón
+4. Pero hay dos problemas prácticos que pueden hacer que no veas el botón:
+   - El `router` puede volver a ejecutarse (por ejemplo por `hashchange` o porque alguna ruta interna vuelve a renderizar), sustituyendo el contenido de `container` y por tanto borrando el botón que añadiste después.
+   - Además, la estructura HTML devuelta por `renderContent` en content.js es un wrapper `.container.board-wrapper` con dentro `.board` que ocupa mucho espacio y probablemente está encima del botón (z-index/flow). Si `container` se rellena solo con ese HTML, un botón appended al final debería aparecer después del tablero, pero puede quedar fuera de la vista si el CSS del `.board`/`.container` lo cubre o tiene overflow oculto. Sin embargo, el primer y más visible problema es que el router re-renderiza (sobreescribe) `container.innerHTML` y con ello borra el botón creado dinámicamente.
+
+Resumen: el botón se crea justo después del primer render, pero si el router renderiza de nuevo (o si el router fue quien creó el tablero y luego se re-ejecuta), ese innerHTML elimina el botón. También puede haber un problema de estilo que lo haga invisible, pero la causa más probable y consistente es la reescritura de `container.innerHTML` por el `router`.
+
+## Evidencias del código
+- `router()` hace: container.innerHTML = ruta(volum);  --> sobrescribe todo el contenido de `#container`.
+- En main.js llamas al `router(...)` primero y luego creas y append-eas el botón. Si en algún momento `router` se ejecuta de nuevo (por ejemplo por `window.addEventListener("hashchange")` que tienes más abajo), el botón será eliminado.
+- Tienes un `window.addEventListener("hashchange", () => router(window.location.hash, containerDiv, volum));` que volverá a llamar al router cuando cambie el hash (y eso volverá a sustituir `innerHTML`). Incluso al inicio hiciste `router(window.location.hash+'#game', ...)` — la forma de construir la ruta puede ser irregular pero lo importante es que el botón queda fuera del control del router.
+
+## Posibles soluciones (elige la que prefieras)
+Opción A — Mantener el botón fuera del área que re-renderiza el router:
+- Mueve la creación del botón a un contenedor que no sea `#container`, por ejemplo crea un `div` específico en index.html o en el header (p.ej. `#controls`) y append el botón allí. Así el router nunca lo borrará.
+- Ventaja: simple y fiable.
+
+Opción B — Hacer que el `router` incluya el botón dentro del HTML que devuelve la ruta:
+- Añade el HTML del botón dentro del string retornado por `renderContent(volum)` para que siempre esté presente después de cada render.
+- Ventaja: el botón forma parte del flujo del contenido y no se pierde al re-renderizar.
+
+Opción C — Re-crearlo o re-montarlo tras cada render del router:
+- Después de llamar a `router(...)`, siempre (o en el callback del router) llamar a una función que asegure que el botón existe y, si no, lo recrea y añade el listener.
+- Menos elegante, pero funciona.
+
+Opción D — Evitar sobrescribir todo `innerHTML` en el router:
+- En vez de `container.innerHTML = ruta(volum)`, renderiza de forma más granular (DOM nodes) o actualiza solo la parte necesaria. Esto evita borrar elementos añadidos por fuera.
+- Requiere más refactor.
+
+## Recomendación concreta (rápida y mínima)
+La solución más simple y segura es la opción A: crear un contenedor para controles y añadir ahí el botón. Cambios mínimos:
+
+1. En index.html añade un div con id `controls` (por ejemplo junto a `menu`):
+   <div id="controls"></div>
+
+2. En main.js añade el botón dentro de `#controls` en lugar de `#container`:
+   const controlsDiv = document.querySelector('#controls');
+   controlsDiv.appendChild(button);
+
+Esto evita que el router borre el botón.
+
+Alternativa rápida (si no quieres editar index.html): añade el botón dentro del `menuDiv` (ya rellenas con `renderHeader()`), porque `menuDiv` no parece ser re-renderizado por el router.
+
+## Cambios exactos sugeridos (ejemplo)
+Te propongo dos líneas a cambiar en main.js:
+
+- Antes:
+  const containerDiv = document.querySelector("#container");
+  ...
+  containerDiv.appendChild(button);
+
+- Cambio simple (usar `menuDiv`):
+  const controlsParent = document.querySelector("#menu");
+  ...
+  controlsParent.appendChild(button);
+
+o (si prefieres crear `#controls`):
+
+- En index.html:
+  Añade <div id="controls"></div> dentro de `#app`.
+
+- En main.js:
+  const controlsDiv = document.querySelector("#controls");
+  controlsDiv.appendChild(button);
+
+También recomiendo mover la asignación del listener inmediatamente tras crear el botón (ya la haces, pero si adoptas la opción B o D conviene integrarlo en el render).
+
+## Posibles edge-cases a tener en cuenta
+- Si añades el botón dentro del `menu` y luego renderizas `menuDiv.innerHTML = renderHeader()`, recuerda añadir el botón después de esa línea (ya lo haces así).
+- Si el CSS del `.board` tapa el botón por posicionamiento, podrías necesitar ajustar z-index o detectar overflow.
+- Si hay múltiples rutas que reemplazan `#container`, incluir el botón en la propia ruta (`renderContent`) es apropiado.
+
+## Cómo verificar
+- Opción minimal: modifica main.js para append al `#menu` o a `#controls`, guarda y abre la página en el navegador; el botón debe aparecer arriba (en la barra de menú) y al hacer click debe ejecutar `inici(volum)`.
+- Si quieres usar la alternativa de incluirlo en `renderContent`, abre la página y cambia de hash para ver que el botón persiste y funciona.
+
+¿Quieres que aplique el cambio ahora (p.ej. mover el botón al `#menu` o añadir `#controls` en index.html y actualizar main.js)? Puedo realizarlo y probar rápidamente contra el proyecto, además marcaré el paso en la lista de tareas y lo verifico.
+
+JorgePR91: QUiero que lo revises ahora porque no me muestra ninguna página, sólo el error del router, pero revísame sólamente eso, vamos paso por paso
+
+GitHub Copilot: Voy a marcar la tarea de revisión del router como "in-progress" en la lista de tareas antes de inspeccionar el archivo y explicar el problema y la solución propuesta. Luego te doy el análisis. 
+
+Iniciando (2/3) *Corregir creación del botón si es un bug*
+
+Reviso solo el router como pediste y te explico lo encontrado y la solución mínima para que deje de salir el error 404 del router.
+
+## Qué he comprobado
+- Archivo inspeccionado: router.js
+- Llamada inicial desde main.js que revisé antes:
+  router(window.location.hash+'#game', containerDiv, volum);
+
+## Causa raíz
+Estás construyendo la ruta inicial concatenando hashes: `window.location.hash + '#game'`. Si la URL ya contiene `#game` eso produce `#game#game`, que no existe en el `Map` de rutas, por eso `routes.has(route)` es false y el router muestra el mensaje 404 ("Error 404: error al carregar la pàgina").  
+Además: el try/catch en `router` no ayuda aquí porque llamar a una función con argumentos extra en JS no lanza excepción (las funciones ignoran argumentos extras), así que el catch casi nunca se ejecutará.
+
+## Solución mínima (recomendada)
+Normalizar la ruta inicial — usar `window.location.hash` si existe, o `'#game'` como valor por defecto:
+
+En main.js reemplaza:
+```javascript
+router(window.location.hash+'#game', containerDiv, volum);
+```
+
+por:
+```javascript
+router(window.location.hash || '#game', containerDiv, volum);
+```
+
+o, más explícito:
+```javascript
+const initialRoute = window.location.hash ? window.location.hash : '#game';
+router(initialRoute, containerDiv, volum);
+```
+
+Con esto evitas pasar `#game#game` y el `Map` encontrará la clave correcta.
+
+## Nota sobre `router` (opcional, para limpiar)
+- El try/catch que intenta llamar `ruta(volum)` y en catch `ruta()` es innecesario y confuso. Si quieres admitir rutas que no usan `volum`, haz una comprobación explícita (ej. `if (route === '#game') container.innerHTML = ruta(volum); else container.innerHTML = ruta();`) o revisa `ruta.length` para detectar aridad. Esto no es imprescindible ahora, solo un refactor recomendado.
+
+## Cómo verificar (rápido)
+1. Cambia la línea indicada en main.js.
+2. Recarga la página (o arranca dev server).  
+3. Deberías ver la ruta `#game` renderizada y ya no ver el 404 del router.
+
+¿Quieres que aplique ese cambio ahora y lo pruebe (haré el cambio en main.js y te confirmo)?
+
+JorgePR91: Vale, ahora cuando pulso en otras etiquetas del menú no me cambia, explica sólamente eso
+
+GitHub Copilot: Voy a buscar en el proyecto eventos que puedan impedir el cambio del hash o que manipulen los enlaces del menú (p. ej. preventDefault, listeners sobre nav links). Ejecutaré una búsqueda rápida en el workspace. 
+
+Texto buscado para `preventDefault|addEventListener\(|onclick|hashchange`, resultados 27
+
+Voy a abrir main.js para ver exactamente qué listeners y calls contiene ahora (busqué preventDefault en el repo, aparece en main.js). Esto me permitirá explicar por qué los enlaces del menú no cambian el hash. Esperado: localizar cualquier preventDefault o listener que interfiera con el comportamiento de los enlaces. 
+
+Leer [](file:///f%3A/FP/FP_DWEC/DWEC_Projecte/projecte-jorgepr/src/main.js)
+
+Voy a explicar exactamente por qué los enlaces del menú no cambian la vista y qué lo provoca en tu código.
+
+## Resumen breve
+Al hacer clic en un enlace del menú el navegador cambia el hash, pero tu `hashchange` handler lanza un error porque usa `event` sin definir. Ese ReferenceError impide que se ejecute `router(...)`, por eso no ves el cambio de página.
+
+## Causa técnica concreta
+En main.js tienes esto:
+```javascript
+window.addEventListener("hashchange", () => {
+  event.preventDefault();
+  router(window.location.hash, containerDiv, volum);
+});
+```
+- La función flecha no declara `event` como parámetro, por lo que `event` es undefined: usar `event.preventDefault()` produce `ReferenceError: event is not defined`.
+- Ese error interrumpe la ejecución y `router(...)` no se llega a ejecutar correctamente, así que la UI no se actualiza aunque el hash cambie.
+- Además: llamar a `preventDefault()` dentro del listener de `hashchange` no evita que el hash cambie (esa acción ya ocurrió). `preventDefault()` tendría sentido en el `click` del enlace si quieres anular la navegación por defecto y manejarlo manualmente, pero no en `hashchange`.
+
+También tienes otro sitio parecido en el listener del botón:
+```javascript
+button.addEventListener("click", () => {
+  event.preventDefault();
+  ...
+});
+```
+igual problema: `event` no está declarado en la función flecha (solo ocurre cuando clicas el botón). Eso lanzará un error cuando pulses el botón.
+
+## Solución mínima (rápida)
+1. Quitar el `event.preventDefault()` del handler de `hashchange` (lo más sencillo y correcto):
+```javascript
+window.addEventListener("hashchange", () => {
+  router(window.location.hash, containerDiv, volum);
+});
+```
+
+2. Corregir el `click` del botón si realmente necesitas `preventDefault()` (o eliminarlo si no es necesario). Por ejemplo, si quieres usar `event`:
+```javascript
+button.addEventListener("click", (event) => {
+  event.preventDefault(); // sólo si hace falta
+  containerDiv.innerHTML = "";
+  inici(volum);
+});
+```
+o simplemente:
+```javascript
+button.addEventListener("click", () => {
+  containerDiv.innerHTML = "";
+  inici(volum);
+});
+```
+
+## Qué verás en la consola ahora
+Antes: al hacer clic en un enlace verías un error tipo `ReferenceError: event is not defined` y la ruta no se renderiza.  
+Después de la corrección: el `router` se ejecutará correctamente y la vista cambiará según el hash (`#game`, `#login`, `#register`).
+
+¿Quieres que aplique esos cambios yo ahora y lo pruebe en el proyecto?
+
+JorgePR91: No, explícame el siguiente dilema: según la estructura del proyecto, del router se llama a un método que envía un trozo de código que será impreso en la web. Pero si necesito crear eventos en ese trozo de código, como la impresión de un botón que dé inicio al juego no puedo hacerlo dentro de ese renderizado porque cuando se intenta crear el evento, el elemento html aún no está creado. Cómo se solucionan estos casos.
+
+GitHub Copilot: Buena pregunta — es un patrón muy común en apps que generan HTML con strings: el HTML se devuelve como texto y todavía no existe en el DOM cuando tu código (que corre dentro de la función de render) intenta atachar listeners. Aquí tienes las razones y las soluciones prácticas (con ejemplos adaptados a tu proyecto).
+
+## Por qué ocurre
+- Cuando una función `renderX()` devuelve un string HTML, ese string no crea elementos reales hasta que alguien hace `container.innerHTML = htmlString`.
+- Si intentas dentro de `renderX()` hacer `document.getElementById('btn')` o añadir un listener, no existirá aún, así que obtendrás null o el listener fallará.
+- La solución es: espera a que el HTML ya esté en el DOM para atachar listeners, o crea los nodos ya con los listeners en JS.
+
+## Opciones para resolverlo (ordenadas por recomendación)
+
+### 1) Adjuntar listeners inmediatamente después de asignar `innerHTML` (sencillo)
+Cambias el sitio donde añades eventos: no dentro del string, sino justo después de que el `router` ponga el HTML en `container`.
+
+Ejemplo (en main.js o en el mismo `router` tras `container.innerHTML = ...`):
+```javascript
+container.innerHTML = ruta(volum);      // ahora el DOM contiene los elementos
+const startBtn = container.querySelector('#startButton');
+if (startBtn) startBtn.addEventListener('click', () => inici(volum));
+```
+Pros: simple, directo.  
+Contras: tienes que hacerlo cada vez que renderizas y controlar duplicados si re-renderizas.
+
+### 2) Hacer que las funciones de ruta devuelvan **HTML + un callback de montaje** (escalable)
+En vez de devolver solo string, devuelve un objeto { html, mount } donde mount es una función que recibe el `container` y añade listeners.
+
+Ejemplo en content.js:
+```javascript
+export function renderContent(volum = 30) {
+  const html = `
+    <div class="board-wrapper">
+      <!-- ... -->
+      <button id="startButton">Inici</button>
+    </div>`;
+  function mount(container){
+    const btn = container.querySelector('#startButton');
+    if (btn) btn.addEventListener('click', () => inici(volum));
+  }
+  return { html, mount };
+}
+```
+Y en router.js modifica cómo consumes la ruta:
+```javascript
+const result = ruta(volum);
+if (typeof result === 'string') {
+  container.innerHTML = result;
+} else {
+  container.innerHTML = result.html;
+  if (typeof result.mount === 'function') result.mount(container);
+}
+```
+Pros: organizado, cada ruta se encarga de su montaje; evita code spread.  
+Contras: hay que adaptar `router` y las rutas.
+
+### 3) Delegación de eventos (muy robusto)
+Atachas un listener en el `container` padre (o en `document`) y manejas clicks delegados. No necesitas re-atar nada al re-renderizar.
+
+Ejemplo:
+```javascript
+container.addEventListener('click', (e) => {
+  if (e.target.matches('#startButton')) {
+    inici(volum);
+  }
+});
+```
+Pros: simple, no te preocupas por re-render; eficiente para muchos elementos dinámicos.  
+Contras: lógica de handlers centralizada (a veces menos clara si hay muchos tipos de eventos).
+
+### 4) Crear nodos DOM con JS en vez de strings (programático)
+En vez de `innerHTML`, construyes elementos con `document.createElement`, añades listeners y luego `appendChild`. Así puedes añadir listeners inmediatamente.
+
+Ejemplo:
+```javascript
+const wrapper = document.createElement('div');
+const btn = document.createElement('button');
+btn.id = 'startButton';
+btn.textContent = 'Inici';
+btn.addEventListener('click', () => inici(volum));
+wrapper.appendChild(btn);
+container.appendChild(wrapper);
+```
+Pros: control total del ciclo de vida y rendimiento en manipulación incremental.  
+Contras: más verborreico que templates; menos legible si HTML es grande.
+
+### 5) Hacks a evitar o usar solo como último recurso
+- Usar `setTimeout(..., 0)` o `requestAnimationFrame` para “esperar” a que el DOM exista: funciona pero es frágil y poco claro.
+- `MutationObserver`: útil para casos complejos, pero suele ser overkill.
+
+## Recomendación para tu proyecto
+Dado tu router que ya hace `container.innerHTML = ruta(volum)`, las soluciones más prácticas son:
+
+- Si quieres la mínima fricción: añadir los listeners justo después de la asignación `innerHTML` en el `router` o en main.js.
+- Si quieres una arquitectura limpia y escalable: adaptar `renderContent`/otras rutas para que devuelvan `{ html, mount }` y modificar `router` para ejecutar `mount(container)` tras el `innerHTML`. Esto es mi favorito porque mantiene la lógica de montaje cerca del template y evita fugas de listeners.
+- Si vas a muchos elementos dinámicos: delegación en `container`.
+
+## Ejemplo concreto — adaptar el `router` (resumen)
+1. Cambia tus rutas para devolver objeto { html, mount } cuando necesiten listeners.
+2. Modifica `router()` para:
+   - asignar `container.innerHTML` con `result.html` o `result` si es string,
+   - llamar `result.mount(container)` si existe.
+
+Esto soluciona el problema de "elemento aún no creado" de forma explícita y robusta.
+
+---
+
+Si quieres, aplico ahora uno de estos patrones en tu repo (por ejemplo: adaptar `router` y `renderContent` para devolver `{ html, mount }`) y dejo todo funcionando — dime cuál prefieres: “mount callback” (recomendado), “delegación” o “attach-after-innerHTML” (rápido).

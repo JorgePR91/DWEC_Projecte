@@ -1,5 +1,6 @@
 export {renderLogin}
 
 function renderLogin(){
-    return `<h1>Login</h1>`
+    const codi = `<h1>Login</h1>`;
+    return {codi};
 }
