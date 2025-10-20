@@ -11,16 +11,19 @@ export function inici(volum) {
   pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
   afegirPoma(canvas);
   let interval;
+
   //MOVIMENT DE LA SERP
   document.addEventListener("keydown", (event) => {
     clearInterval(interval);
     interval = setInterval(() => moviment(event, canvas), 200);
   });
 
+  return interval;
+
   //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
 }
 
-function crearCanvas(volum = 20) {
+function crearCanvas(volum = 10) {
   //El map sols opera amb elements existents, així que si no l'omplim no entra
 
   return new Array(volum).fill(null).map((_, x) =>
@@ -148,33 +151,27 @@ function afegirPoma(canvas) {
   pintar(canvas[novaPoma.x][novaPoma.y], "poma");
 }
 
-export function renderContent(volum) {
-  // let gameDiv = document.createElement("div");
-  // gameDiv.setAttribute("id", "gameContainer");
-  // gameDiv.classList.add("container");
-  // gameDiv.classList.add("board-wrapper");
+export function renderContent(volum = 10) {
 
-  // document.getElementById("container").appendChild(gameDiv);
+  const section = document.createElement("section");
+  section.setAttribute("id", "gameSection");
+  section.classList.add('container');
+  section.classList.add('board-wrapper');
 
-  // gameDiv.innerHTML = renderCanvas(volum);
+  section.replaceChildren(renderCanvas(volum  ));
 
-  const codi = `<div id="gameContainer" class="container board-wrapper">
-    ${renderCanvas(volum)}
-  </div>`;
-
-  function muntatge(contenidor) {
     let button = document.createElement("button");
     button.textContent = "Inici";
-    document.getElementById("container").append(button);
+    section.append(button);
 
     //SI PASSEM LA FUNCIÓ AMB PARÈNTESI S'EXECUTA, EN COMPTE DE QUEDAR-SE COM A CALLBACK
     button.addEventListener("click", () => {
-      document.querySelector("#gameContainer").innerHTML = renderCanvas(volum);
+      document.querySelector("#gameSection").replaceChild(renderCanvas(volum), document.querySelector('#gameCanvas'));
       inici(volum);
     });
-  }
 
-  return { codi, muntatge };
+
+  return section;
 }
 
 //FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
@@ -191,11 +188,12 @@ export function renderCanvas(volum = 30) {
     contingut += `</div>`;
   }
 
-  return `
-  <div class="board">
-    ${contingut}
-  </div>
-  `;
+  const div = document.createElement('div');
+  div.setAttribute('id', 'gameCanvas')
+  div.classList.add('board');
+  div.innerHTML = contingut;
+
+  return div;
 }
 
 function pintar(coord, forma) {

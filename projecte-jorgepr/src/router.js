@@ -14,7 +14,6 @@ const routes = new Map([
 //SI
 async function router(route, container) {
   if (routes.has(route)) {
-    console.log(routes.get(route)())
       container.replaceChildren(routes.get(route)());
   } else {
     container.innerHTML = `<h2>Error 404: error al carregar la pàgina</h2>`;
