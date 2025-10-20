@@ -1,5 +1,3 @@
-/* eslint-disable no-undef */
-
 //FUNCIÓ D'INICI
 export function inici(volum) {
   let canvas = crearCanvas(volum);
@@ -12,11 +10,11 @@ export function inici(volum) {
   canvas[posicioInicialX][posicioInicialY].estat = "serp";
   pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
   afegirPoma(canvas);
-let interval;
+  let interval;
   //MOVIMENT DE LA SERP
   document.addEventListener("keydown", (event) => {
-   clearInterval(interval);
-     interval  = setInterval(() => moviment(event, canvas), 200); 
+    clearInterval(interval);
+    interval = setInterval(() => moviment(event, canvas), 200);
   });
 
   //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
@@ -65,7 +63,10 @@ function moviment(event, canvas) {
       return;
   }
 
-  if (comprovarLimit(coordNoves, canvas) || canvas[coordNoves.x][coordNoves.y].estat === "serp") {
+  if (
+    comprovarLimit(coordNoves, canvas) ||
+    canvas[coordNoves.x][coordNoves.y].estat === "serp"
+  ) {
     disminuir(canvas);
     //   for (let fila of canvas)
     // for (let element of fila) if (element.pos > 1) element.pos--;
@@ -93,7 +94,6 @@ function comprovarLimit(pos, canvas) {
 }
 
 function disminuir(canvas) {
-
   let cua = canvas
     .flat()
     .reduce((accumulador, actual) =>
@@ -114,13 +114,13 @@ function afegirPoma(canvas) {
 
   //  let x = Math.floor(Math.random() * canvas.length);
   //  let y = Math.floor(Math.random() * canvas.length);
-  
-  let arrCasLliures = canvas.flat().filter(c => c.estat === null);
 
-  if(arrCasLliures.length === 0)
-    finalitzarJoc();
+  let arrCasLliures = canvas.flat().filter((c) => c.estat === null);
 
-  let novaPoma = arrCasLliures[Math.floor(Math.random() * arrCasLliures.length)]
+  if (arrCasLliures.length === 0) finalitzarJoc();
+
+  let novaPoma =
+    arrCasLliures[Math.floor(Math.random() * arrCasLliures.length)];
 
   let poma;
 
@@ -144,8 +144,8 @@ function afegirPoma(canvas) {
   //   afegirPoma(canvas);
   // }
 
-    canvas[novaPoma.x][novaPoma.y].estat = "poma";
-    pintar(canvas[novaPoma.x][novaPoma.y], "poma");
+  canvas[novaPoma.x][novaPoma.y].estat = "poma";
+  pintar(canvas[novaPoma.x][novaPoma.y], "poma");
 }
 
 export function renderContent(volum) {
@@ -176,6 +176,7 @@ export function renderContent(volum) {
 
   return { codi, muntatge };
 }
+
 //FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
 export function renderCanvas(volum = 30) {
   console.log("Render canvas...");
@@ -219,12 +220,13 @@ function borrar(coord, forma) {
 }
 
 //FUNCIÓ DE FINALITZAR JOC
-function finalitzarJoc() {
+function finalitzarJoc(st) {
+  clearInterval(st);
   console.log("S'acabó");
 }
 
 //MÈTODE COMPROVACIÓ SERP
-    /*for (let fila of canvas) {
+/*for (let fila of canvas) {
       for (let element of fila) {
         if (element.estat === "serp") {
           console.log(element);

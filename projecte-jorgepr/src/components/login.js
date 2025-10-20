@@ -1,11 +1,9 @@
-export {renderLogin}
+export { renderLogin };
+import { APIKEY } from "./enviroment";
 
-
-
-function renderLogin(){
-
-    //https://mdbootstrap.com/docs/standard/extended/login/
-    const codi = `
+function renderLogin() {
+  //https://mdbootstrap.com/docs/standard/extended/login/
+  const codi = `
                 <section class="vh-100" style="background-color: #4f4f4fff">
         <div class="container py-5 h-100">
           <div
@@ -20,7 +18,7 @@ function renderLogin(){
                   <div class="form-outline mb-4">
                     <label class="form-label" for="usuari">Usuari</label>
                     <input
-                      type="text"
+                      type="email"
                       id="usuari"
                       class="form-control form-control-lg"
                     />
@@ -37,10 +35,10 @@ function renderLogin(){
                     />
                   </div>
 
-                  <!-- Checkbox 
-                  <div class="form-check d-flex justify-content-start mb-4">
-                    <input
-                    class="form-check-input"
+<!-- Checkbox 
+  <div class="form-check d-flex justify-content-start mb-4">
+    <input
+               class="form-check-input"
                       type="checkbox"
                       value=""
                       id="form1Example3"
@@ -65,34 +63,82 @@ function renderLogin(){
       </section>
     `;
 
-    function muntatge(){
+  const section = document.createElement("section");
+  section.innerHTML = codi;
 
-        //https://www.javascripttutorial.net/javascript-dom/javascript-form/
+   const btn = section.querySelector("#enviarBtn");
+   const form = section.getElementsByTagName("form")[0];
 
-    const form = document.forms[0];
-    const submit = document.querySelector('#enviarBtn');
+   btn.addEventListener("click", (event) => {
+     event.preventDefault();
+     console.log("enviar");
+     registre(form);
+    });
 
-    submit.addEventListener('click', (event) => {
-        event.preventDefault();
-        validacions(form);
-    })
-}
+  return section;
 
-    return {codi, muntatge};
+  // const divContainer = wrapper.firstElementChild;
+  // const divBoard = divContainer.querySelector("#board");
+
+  // divBoard.addEventListener("click", handleClick(fruitsBoard, fruitCellsMap));
+
+  // function muntatge() {
+  //   //https://www.javascripttutorial.net/javascript-dom/javascript-form/
+
+  //   const form = document.forms[0];
+  //   const submit = document.querySelector("#enviarBtn");
+
+  //   submit.addEventListener("click", (event) => {
+  //     event.preventDefault();
+  //    // registre(form);
+  //   });
+  // }
+
+  // return { codi, muntatge };
 }
 
 function validacions(form) {
+  // const user = form.elements.usuari;
+  // const pwd = form.elements.pwd;
 
-    const user = form.elements.usuari;
-    const pwd = form.elements.pwd;
+  // if (!/.{3,10}/.test(user.value)) {
+  //   console.log("L'usuari ha de contenir entre 3 i 10 caracters.");
+  //   return false;
+  // }
 
-    if(!/.{3,10}/.test(user.value))
-        console.log("L'usuari ha de contenir entre 3 i 10 caracters.");
+  // if (!/.{4,10}/.test(pwd.value)) {
+  //   console.log("La contrasenya ha de contenir entre 4 i 10 caracters.");
+  //   return false;
+  // }
 
-    if(!/.{4,10}/.test(pwd.value))
-        console.log("La contrasenya ha de contenir entre 4 i 10 caracters.");
+  // if (!/^.{3,10}(?![A-Z]+)(?![\/\-*,@.]+)$/.test(pwd.value)) {
+  //   console.log("L'a contrasenya ha de contenir una majúscula i un símbol (-/*.,@|).");
+  //   return false;
+  // }
 
-    if(!/^.{3,10}(?![A-Z]+)(?![\/\-*,@.]+)$/.test(user.value))
-        console.log("L'usuari ha de contenir una majúscula i un símbol (-/*.,@|).");
-    console.log('validant '+form.element)
+  return true;
+}
+
+async function registre(form) {
+  if (validacions(form)) {
+    const objecteSessio = {
+      email: form.elements.usuari.value,
+      password  : form.elements.pwd.value,
+    };
+    let response = await fetch(
+      "https://psumfbkktptsjzrqpuus.supabase.co/auth/v1/signup",
+      {
+        method: "post",
+        headers: {
+          apiKey: APIKEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(objecteSessio)
+      }
+    );
+
+    let data = await response.json();
+    console.log("Resposta:")
+    console.log(data);
+  }
 }
