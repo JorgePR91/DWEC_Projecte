@@ -1,4 +1,4 @@
-export {renderRegister}
+export { renderRegister };
 
 function renderRegister(){
     const codi = `

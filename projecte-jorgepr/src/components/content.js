@@ -18,10 +18,12 @@ export function inici(volum) {
     interval = setInterval(() => moviment(event, canvas), 200);
   });
 
+  return interval;
+
   //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
 }
 
-function crearCanvas(volum = 20) {
+function crearCanvas(volum = 10) {
   //El map sols opera amb elements existents, així que si no l'omplim no entra
 
   return new Array(volum).fill(null).map((_, x) =>
@@ -164,7 +166,7 @@ export function renderContent(volum = 10) {
     section.append(button);
 
     button.addEventListener("click", () => {
-      document.querySelector("#gameContainer").innerHTML = renderCanvas(volum);
+      document.querySelector("#gameSection").replaceChild(renderCanvas(volum), document.querySelector('#gameCanvas'));
       inici(volum);
     });
 
@@ -185,11 +187,12 @@ export function renderCanvas(volum = 30) {
     contingut += `</div>`;
   }
 
-  return `
-  <div class="board">
-    ${contingut}
-  </div>
-  `;
+  const div = document.createElement('div');
+  div.setAttribute('id', 'gameCanvas')
+  div.classList.add('board');
+  div.innerHTML = contingut;
+
+  return div;
 }
 
 function pintar(coord, forma) {

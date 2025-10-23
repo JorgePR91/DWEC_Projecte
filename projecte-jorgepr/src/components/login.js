@@ -1,11 +1,11 @@
 export { renderLogin };
-import { APIKEY } from "./enviroment";
+import { APIKEY_anon_public, singUpUrl } from "./enviroment";
 
 function renderLogin() {
   //https://mdbootstrap.com/docs/standard/extended/login/
   const codi = `
                 <section class="vh-100" style="background-color: #4f4f4fff">
-        <div class="container py-5 h-100">
+        <div class="container py-5">
           <div
             class="row d-flex justify-content-center align-items-center h-100"
           >
@@ -16,7 +16,7 @@ function renderLogin() {
                 </div>
                 <form class="card-body p-5 text-center">
                   <div class="form-outline mb-4">
-                    <label class="form-label" for="usuari">Usuari</label>
+                    <label class="form-label" for="usuari">Correu</label>
                     <input
                       type="email"
                       id="usuari"
@@ -81,15 +81,15 @@ function renderLogin() {
 
 async function registre(form) {
     const objecteSessio = {
-      email: form.elements.usuari.value,
-      password  : form.elements.pwd.value,
+      "email": form.elements.usuari.value.trim(),
+      "password": form.elements.pwd.value,
     };
     let response = await fetch(
-      "https://psumfbkktptsjzrqpuus.supabase.co/auth/v1/signup",
+      singUpUrl,
       {
         method: "post",
         headers: {
-          apiKey: APIKEY,
+          apiKey: APIKEY_anon_public,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(objecteSessio)
