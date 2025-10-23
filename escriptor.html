@@ -10,10 +10,70 @@
       crossorigin="anonymous"
     />
     <title>Document</title>
+    <style>
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 240 10% 8%;
+    --foreground: 180 100% 95%;
+
+    --card: 240 10% 12%;
+    --card-foreground: 180 100% 95%;
+
+    --popover: 240 10% 12%;
+    --popover-foreground: 180 100% 95%;
+
+    --primary: 180 100% 50%;
+    --primary-foreground: 240 10% 8%;
+
+    --secondary: 280 85% 60%;
+    --secondary-foreground: 180 100% 95%;
+
+    --muted: 240 10% 20%;
+    --muted-foreground: 180 20% 65%;
+
+    --accent: 160 100% 45%;
+    --accent-foreground: 240 10% 8%;
+
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 180 100% 95%;
+
+    --border: 240 10% 20%;
+    --input: 240 10% 15%;
+    --ring: 180 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Gaming specific colors */
+    --gaming-glow: 180 100% 50%;
+    --gaming-purple: 280 85% 60%;
+    --gaming-green: 160 100% 45%;
+  }
+
+  body {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(240 15% 12%) 100%);
+    min-height: 100vh;
+  }
+
+  /* Gaming effects */
+  .glow-effect {
+    box-shadow: 0 0 20px hsl(var(--gaming-glow) / 0.3),
+                0 0 40px hsl(var(--gaming-glow) / 0.1);
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px hsl(var(--gaming-glow) / 0.5),
+                 0 0 20px hsl(var(--gaming-glow) / 0.3);
+  }
+}
+    </style>
   </head>
   <body>
     <div id="contingut">
-      <section class="vh-100" style="background-color: #508bfc">
+      <!-- <section class="vh-100" style="background-color: #508bfc">
         <div class="container py-5 h-100">
           <div
             class="row d-flex justify-content-center align-items-center h-100"
@@ -45,7 +105,7 @@
                   </div>
 
                   <!-- Checkbox -->
-                  <div class="form-check d-flex justify-content-start mb-4">
+                  <!--<div class="form-check d-flex justify-content-start mb-4">
                     <input
                       class="form-check-input"
                       type="checkbox"
@@ -68,7 +128,57 @@
             </div>
           </div>
         </div>
-      </section>
+      </section> -->
+
+    <div class="container w-full max-w-md px-4">
+      <div class="rounded-lg border bg-card text-card-foreground shadow-sm border-primary/20 glow-effect">
+        <div class="flex flex-col space-y-1.5 p-6 space-y-1">
+          <div class=" text-2xl font-semibold leading-none tracking-tight text-3xl font-bold text-center glow-text">
+            Welcome Back
+          </div>
+          <div class="text-center text-muted-foreground">
+            Enter your credentials to play
+          </div>
+        </div>
+        <div>
+          <form class="space-y-4">
+            <div class="space-y-2">
+              <label for="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="player@iogame.com"
+                required
+                class="bg-input border-border focus:border-primary"
+              />
+            </div>
+            <div class="space-y-2">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                required
+                class="bg-input border-border focus:border-primary"
+              />
+            </div>
+            <button type="submit" class="w-full" variant="gaming" size="lg">
+              Login
+            </button>
+            <p class="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <a to="/register" class="text-primary hover:underline">
+                Register here
+              </a>
+            </p>
+          </form>
+        </div>
+      </div>
     </div>
+
+
+
+    </div>
+
   </body>
 </html>

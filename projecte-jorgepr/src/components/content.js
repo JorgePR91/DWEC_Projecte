@@ -11,6 +11,7 @@ export function inici(volum) {
   pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
   afegirPoma(canvas);
   let interval;
+
   //MOVIMENT DE LA SERP
   document.addEventListener("keydown", (event) => {
     clearInterval(interval);
@@ -148,33 +149,26 @@ function afegirPoma(canvas) {
   pintar(canvas[novaPoma.x][novaPoma.y], "poma");
 }
 
-export function renderContent(volum) {
-  // let gameDiv = document.createElement("div");
-  // gameDiv.setAttribute("id", "gameContainer");
-  // gameDiv.classList.add("container");
-  // gameDiv.classList.add("board-wrapper");
-
-  // document.getElementById("container").appendChild(gameDiv);
-
-  // gameDiv.innerHTML = renderCanvas(volum);
+export function renderContent(volum = 10) {
 
   const codi = `<div id="gameContainer" class="container board-wrapper">
     ${renderCanvas(volum)}
   </div>`;
 
-  function muntatge(contenidor) {
+  const section = document.createElement("section");
+  section.setAttribute('id', 'sectionGame')
+  section.innerHTML = codi;
+
     let button = document.createElement("button");
     button.textContent = "Inici";
-    document.getElementById("container").append(button);
+    section.append(button);
 
-    //SI PASSEM LA FUNCIÓ AMB PARÈNTESI S'EXECUTA, EN COMPTE DE QUEDAR-SE COM A CALLBACK
     button.addEventListener("click", () => {
       document.querySelector("#gameContainer").innerHTML = renderCanvas(volum);
       inici(volum);
     });
-  }
 
-  return { codi, muntatge };
+  return section;
 }
 
 //FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)

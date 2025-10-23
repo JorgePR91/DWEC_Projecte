@@ -17,6 +17,15 @@ async function router(route, container) {
     console.log(routes.get(route)())
       container.replaceChildren(routes.get(route)());
   } else {
-    container.innerHTML = `<h2>Error 404: error al carregar la pàgina</h2>`;
+    container.innerHTML = `
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="mb-4 text-4xl font-bold glow-text">Error 404</h1>
+        <p className="mb-4 text-xl text-muted-foreground">Error al carregar la pàgina</p>
+        <a href="/" className="text-primary underline hover:text-primary/80">
+          Return to Home
+        </a>
+      </div>
+    </div>`;
   }
 }

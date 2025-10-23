@@ -76,51 +76,10 @@ function renderLogin() {
     });
 
   return section;
-
-  // const divContainer = wrapper.firstElementChild;
-  // const divBoard = divContainer.querySelector("#board");
-
-  // divBoard.addEventListener("click", handleClick(fruitsBoard, fruitCellsMap));
-
-  // function muntatge() {
-  //   //https://www.javascripttutorial.net/javascript-dom/javascript-form/
-
-  //   const form = document.forms[0];
-  //   const submit = document.querySelector("#enviarBtn");
-
-  //   submit.addEventListener("click", (event) => {
-  //     event.preventDefault();
-  //    // registre(form);
-  //   });
-  // }
-
-  // return { codi, muntatge };
 }
 
-function validacions(form) {
-  // const user = form.elements.usuari;
-  // const pwd = form.elements.pwd;
-
-  // if (!/.{3,10}/.test(user.value)) {
-  //   console.log("L'usuari ha de contenir entre 3 i 10 caracters.");
-  //   return false;
-  // }
-
-  // if (!/.{4,10}/.test(pwd.value)) {
-  //   console.log("La contrasenya ha de contenir entre 4 i 10 caracters.");
-  //   return false;
-  // }
-
-  // if (!/^.{3,10}(?![A-Z]+)(?![\/\-*,@.]+)$/.test(pwd.value)) {
-  //   console.log("L'a contrasenya ha de contenir una majúscula i un símbol (-/*.,@|).");
-  //   return false;
-  // }
-
-  return true;
-}
 
 async function registre(form) {
-  if (validacions(form)) {
     const objecteSessio = {
       email: form.elements.usuari.value,
       password  : form.elements.pwd.value,
@@ -140,5 +99,5 @@ async function registre(form) {
     let data = await response.json();
     console.log("Resposta:")
     console.log(data);
-  }
+  
 }
