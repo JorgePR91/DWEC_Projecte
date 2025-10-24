@@ -2,7 +2,7 @@ export {renderHeader}
 
 
 function renderHeader(){
-    return `
+    let r = `
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
   <div class="container-fluid">
     <a class="navbar-brand" href="#game">IO Game JPR</a>
@@ -37,5 +37,22 @@ function renderHeader(){
     </div>
   </div>
 </nav>
+    `;
+
+   return `
+        <nav class="d-flex align-items-center justify-content-between h-100 px-3">
+          <div class="d-flex align-items-center gap-2">
+            <a href="#" class="fw-bold text-light fs-4 text-decoration-none logo glow-text">IO.Game</a>
+            <div class="d-flex gap-2">
+              <a href="#login" class="btn btn-link text-light px-2 py-1 rounded nav-button">Login</a>
+              <a href="#register" class="btn btn-link text-light px-2 py-1 roundednav-button">Register</a>
+              <a href="#game" class="btn btn-link text-light px-2 py-1 rounded nav-button" >Game</a>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-0.75">
+            <span class="username text-muted small">Guest</span>
+            <div class="avatar rounded-circle d-flex align-items-center justify-content-center border">G</div>
+          </div>
+        </nav>
     `;
 }

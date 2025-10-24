@@ -1,186 +1,192 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IO Game</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, hsl(240, 10%, 8%) 0%, hsl(240, 15%, 12%) 100%);
-            color: hsl(180, 100%, 95%);
-            min-height: 100vh;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(
+          135deg,
+          hsl(240, 10%, 8%) 0%,
+          hsl(240, 15%, 12%) 100%
+        );
+        color: hsl(180, 100%, 95%);
+        min-height: 100vh;
+      }
 
-        .layout {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+      .layout {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
 
-        /* HEADER */
-        header {
-            border-bottom: 1px solid hsl(240, 10%, 20%);
-            backdrop-filter: blur(12px);
-            background: hsl(240, 10%, 12% / 0.5);
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
+      /* HEADER */
+      header {
+        border-bottom: 1px solid hsl(240, 10%, 20%);
+        backdrop-filter: blur(12px);
+        background: hsl(240, 10%, 12% / 0.5);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
 
-        nav {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            height: 4rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+      nav {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
 
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
+      .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-decoration: none;
-            color: hsl(180, 100%, 95%);
-        }
+      .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+        color: hsl(180, 100%, 95%);
+      }
 
-        .glow-text {
-            text-shadow: 0 0 10px hsl(180, 100%, 50% / 0.5),
-                         0 0 20px hsl(180, 100%, 50% / 0.3);
-        }
+      .glow-text {
+        text-shadow: 0 0 10px hsl(180, 100%, 50% / 0.5),
+          0 0 20px hsl(180, 100%, 50% / 0.3);
+      }
 
+      .nav-links {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .nav-button {
+        padding: 0.375rem 0.75rem;
+        border: none;
+        background: transparent;
+        color: hsl(180, 100%, 95%);
+        font-size: 0.875rem;
+        cursor: pointer;
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .nav-button:hover {
+        background: hsl(240, 10%, 20%);
+      }
+
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .username {
+        font-size: 0.875rem;
+        color: hsl(180, 20%, 65%);
+      }
+
+      .avatar {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 50%;
+        border: 1px solid hsl(180, 100%, 50% / 0.5);
+        background: hsl(180, 100%, 50% / 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: hsl(180, 100%, 50%);
+        font-weight: 500;
+      }
+
+      /* MAIN CONTENT */
+      main {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      /* FOOTER */
+      footer {
+        border-top: 1px solid hsl(240, 10%, 20%);
+        backdrop-filter: blur(12px);
+        background: hsl(240, 10%, 12% / 0.3);
+        padding: 1rem 0;
+      }
+
+      .footer-content {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        text-align: center;
+      }
+
+      footer p {
+        font-size: 0.875rem;
+        color: hsl(180, 20%, 65%);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
         .nav-links {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .nav-button {
-            padding: 0.375rem 0.75rem;
-            border: none;
-            background: transparent;
-            color: hsl(180, 100%, 95%);
-            font-size: 0.875rem;
-            cursor: pointer;
-            border-radius: 0.375rem;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .nav-button:hover {
-            background: hsl(240, 10%, 20%);
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+          display: none;
         }
 
         .username {
-            font-size: 0.875rem;
-            color: hsl(180, 20%, 65%);
+          display: none;
         }
-
-        .avatar {
-            width: 2.25rem;
-            height: 2.25rem;
-            border-radius: 50%;
-            border: 1px solid hsl(180, 100%, 50% / 0.5);
-            background: hsl(180, 100%, 50% / 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: hsl(180, 100%, 50%);
-            font-weight: 500;
-        }
-
-        /* MAIN CONTENT */
-        main {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        /* FOOTER */
-        footer {
-            border-top: 1px solid hsl(240, 10%, 20%);
-            backdrop-filter: blur(12px);
-            background: hsl(240, 10%, 12% / 0.3);
-            padding: 1rem 0;
-        }
-
-        .footer-content {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 1rem;
-            text-align: center;
-        }
-
-        footer p {
-            font-size: 0.875rem;
-            color: hsl(180, 20%, 65%);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-            }
-
-            .username {
-                display: none;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="layout">
-        <!-- HEADER -->
-        <header>
-            <nav>
-                <div class="nav-left">
-                    <a href="/" class="logo glow-text">IO.Game</a>
-                    <div class="nav-links">
-                        <a href="/login" class="nav-button">Login</a>
-                        <a href="/register" class="nav-button">Register</a>
-                        <a href="/game" class="nav-button">Game</a>
-                    </div>
-                </div>
-                <div class="nav-right">
-                    <span class="username">Guest</span>
-                    <div class="avatar">G</div>
-                </div>
-            </nav>
-        </header>
-
-        <!-- MAIN CONTENT -->
-        <main>
-            <!-- El contenido de las páginas (login, register, game) va aquí -->
-            <h1>Tu contenido aquí</h1>
-        </main>
-
-        <!-- FOOTER -->
-        <footer>
-            <div class="footer-content">
-                <p>© 2025 IO.Game - All rights reserved</p>
+      <!-- HEADER -->
+      <header>
+        <nav>
+          <div class="nav-left">
+            <a href="/" class="logo glow-text">IO.Game</a>
+            <div class="nav-links">
+              <a href="/login" class="nav-button">Login</a>
+              <a href="/register" class="nav-button">Register</a>
+              <a href="/game" class="nav-button">Game</a>
             </div>
-        </footer>
+          </div>
+          <div class="nav-right">
+            <span class="username">Guest</span>
+            <div class="avatar">G</div>
+          </div>
+        </nav>
+      </header>
+
+      <!-- MAIN CONTENT -->
+      <main>
+        <!-- El contenido de las páginas (login, register, game) va aquí -->
+        <h1>Tu contenido aquí</h1>
+      </main>
+
+      <!-- FOOTER -->
+      <footer>
+        <div class="footer-content">
+          <p>© 2025 IO.Game - All rights reserved</p>
+        </div>
+      </footer>
     </div>
-</body>
+  </body>
 </html>
+

@@ -3,7 +3,7 @@ import { APIKEY_anon_public, singUpUrl } from "./enviroment";
 
 function renderLogin() {
   //https://mdbootstrap.com/docs/standard/extended/login/
-  const codi = `
+  const codi1 = `
                 <section class="vh-100" style="background-color: #4f4f4fff">
         <div class="container py-5">
           <div
@@ -62,8 +62,46 @@ function renderLogin() {
         </div>
       </section>
     `;
+  const codi = `
+  <div class="card bg-dark text-light border-secondary glow-effect cardClass p-4">
+            <div class="card-header">
+                <h3 class="card-title glow-text">Benvingut de nou!</h3>
+                <p class="card-description">Introdueix les teues credencials per a jugar</p>
+            </div>
+            <div class="card-content">
+                <form class="d-flex flex-column gap-3" >
+                    <div class="mb-3">
+                        <label class="label" for="email">Email</label>
+                        <input 
+                            class="form-control bg-dark text-light border-secondary" 
+                            id="email" 
+                            type="email" 
+                            placeholder="player@iogame.com"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="label" for="password">Password</label>
+                        <input 
+                            class="form-control bg-dark text-light border-secondary" 
+                            id="password" 
+                            type="password" 
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+                    <button type="submit" id="enviarBtn" class="btn btn-primary w-100">Login</button>
+                    <p class="text-center text-muted">
+                        Don't have an account? 
+                        <a href="#register" class="link link-primary">Register here</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+  `;
 
   const section = document.createElement("section");
+  //section.classList.add('container');
   section.innerHTML = codi;
 
    const btn = section.querySelector("#enviarBtn");
