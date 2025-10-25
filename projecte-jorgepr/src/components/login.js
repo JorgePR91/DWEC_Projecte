@@ -1,5 +1,5 @@
 export { renderLogin };
-import { APIKEY_anon_public, singUpUrl } from "./enviroment";
+import { APIKEY_anon_public, loginUrl } from "./enviroment";
 
 function renderLogin() {
   //https://mdbootstrap.com/docs/standard/extended/login/
@@ -69,28 +69,30 @@ function renderLogin() {
                 <p class="card-description">Introdueix les teues credencials per a jugar</p>
             </div>
             <div class="card-content">
-                <form class="d-flex flex-column gap-3" >
-                    <div class="mb-3">
+                <form class="d-flex flex-column gap-2" >
+                    <div class="mb-2">
                         <label class="label" for="email">Email</label>
                         <input 
                             class="form-control bg-dark text-light border-secondary" 
                             id="email" 
+                            name="email" 
                             type="email" 
                             placeholder="player@iogame.com"
                             required
                         />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                         <label class="label" for="password">Password</label>
                         <input 
                             class="form-control bg-dark text-light border-secondary" 
                             id="password" 
                             type="password" 
+                            name="password"  
                             placeholder="••••••••"
                             required
                         />
                     </div>
-                    <button type="submit" id="enviarBtn" class="btn btn-primary w-100">Login</button>
+                    <button type="submit" id="enviarBtn" class="button btn btn-primary w-100">Login</button>
                     <p class="text-center text-muted">
                         Don't have an account? 
                         <a href="#register" class="link link-primary">Register here</a>
@@ -110,20 +112,20 @@ function renderLogin() {
    btn.addEventListener("click", (event) => {
      event.preventDefault();
      console.log("enviar");
-     registre(form);
+     login(form);
     });
 
   return section;
 }
 
 
-async function registre(form) {
+async function login(form) {
     const objecteSessio = {
-      "email": form.elements.usuari.value.trim(),
-      "password": form.elements.pwd.value,
+      email: form.elements.email.value.trim(),
+      password: form.elements.password.value
     };
     let response = await fetch(
-      singUpUrl,
+      loginUrl,
       {
         method: "post",
         headers: {

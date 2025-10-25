@@ -1,7 +1,8 @@
 export { renderRegister };
+import { APIKEY_anon_public, singUpUrl } from "./enviroment";
 
-function renderRegister(){
-    const codi1 = `
+function renderRegister() {
+  const codi1 = `
     <div class="card glow-effect">
             <div class="card-header">
                 <h3 class="card-title glow-text">Join the Game</h3>
@@ -59,7 +60,7 @@ function renderRegister(){
             </div>
         </div>`;
 
-    const codi = `
+  const codi = `
     <div class="card bg-dark text-light border-secondary glow-effect p-4">
             <div class="card-header">
                 <h3 class="card-title glow-text">Join the Game</h3>
@@ -72,6 +73,7 @@ function renderRegister(){
                         <input 
                             class="input form-control bg-dark text-light border-secondary" 
                             id="username" 
+                            name="username"
                             type="text" 
                             placeholder="PlayerOne"
                             required
@@ -82,6 +84,7 @@ function renderRegister(){
                         <input 
                             class="input form-control bg-dark text-light border-secondary" 
                             id="email" 
+                            name="email"
                             type="email" 
                             placeholder="player@iogame.com"
                             required
@@ -92,6 +95,7 @@ function renderRegister(){
                         <input 
                             class="input form-control bg-dark text-light border-secondary" 
                             id="password" 
+                            name="password"
                             type="password" 
                             placeholder="••••••••"
                             required
@@ -101,7 +105,8 @@ function renderRegister(){
                         <label class="label" for="confirmPassword">Confirm Password</label>
                         <input 
                             class="input form-control bg-dark text-light border-secondary" 
-                            id="confirmPassword" 
+                            id="confirmPassword"
+                            name="confirmPassword" 
                             type="password" 
                             placeholder="••••••••"
                             required
@@ -117,17 +122,38 @@ function renderRegister(){
             </div>
         </div>
     `;
-    const section = document.createElement("section");
+  const section = document.createElement("section");
   section.innerHTML = codi;
 
-     const btn = section.querySelector("#enviarBtn");
-   const form = section.getElementsByTagName("form")[0];
+  const btn = section.querySelector("#enviarBtn");
+  const form = section.getElementsByTagName("form")[0];
 
-   btn.addEventListener("click", (event) => {
-     event.preventDefault();
-     console.log("enviar");
-     registre(form);
-    });
+  btn.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (form.elements.password.value === form.elements.confirmPassword.value) {
+      console.log("enviar");
+      registre(form);
+    }
+  });
 
-    return section;
+  return section;
+}
+
+async function registre(form) {
+  const objecteSessio = {
+    email: form.elements.email.value.trim(),
+    password: form.elements.password.value
+  };
+  let response = await fetch(singUpUrl, {
+    method: "post",
+    headers: {
+      apiKey: APIKEY_anon_public,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(objecteSessio),
+  });
+
+  let data = await response.json();
+  console.log("Resposta:");
+  console.log(data);
 }

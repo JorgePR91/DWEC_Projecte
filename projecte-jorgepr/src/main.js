@@ -1,8 +1,8 @@
 import { router } from "./router";
 import "./style.scss";
 
-
 //import { inici } from "./components/content";
+import { renderFooter } from "./components/footer";
 import { renderHeader } from "./components/header";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   //const appDiv = document.querySelector('#app');
   const menuDiv = document.querySelector("#menu");
   menuDiv.innerHTML = renderHeader();
+  const footerDiv = document.querySelector("#footer");
+  footerDiv.innerHTML = renderFooter();
 
   const containerDiv = document.querySelector("#container");
   const volum = 10;

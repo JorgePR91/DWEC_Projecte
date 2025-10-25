@@ -153,20 +153,27 @@ function afegirPoma(canvas) {
 
 export function renderContent(volum = 10) {
 
-  const codi = `<div id="gameContainer" class="container board-wrapper">
-    ${renderCanvas(volum)}
-  </div>`;
-
   const section = document.createElement("section");
   section.setAttribute('id', 'sectionGame')
-  section.innerHTML = codi;
+
+    const div = document.createElement("div");
+  div.setAttribute('id', 'gameContainer');
+  div.classList.add('container');
+  div.classList.add('board-wrapper');
+    div.classList.add('mb-5');
+
+  div.appendChild(renderCanvas(volum));
+
+  section.appendChild(div);
 
     let button = document.createElement("button");
     button.textContent = "Inici";
+    button.classList.add('btn');
+    button.classList.add('btn-primary');
     section.append(button);
 
     button.addEventListener("click", () => {
-      document.querySelector("#gameSection").replaceChild(renderCanvas(volum), document.querySelector('#gameCanvas'));
+      document.querySelector("#gameContainer").replaceChild(renderCanvas(volum), div.querySelector('#gameCanvas'));
       inici(volum);
     });
 
@@ -190,6 +197,7 @@ export function renderCanvas(volum = 30) {
   const div = document.createElement('div');
   div.setAttribute('id', 'gameCanvas')
   div.classList.add('board');
+
   div.innerHTML = contingut;
 
   return div;

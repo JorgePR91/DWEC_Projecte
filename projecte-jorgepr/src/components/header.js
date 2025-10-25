@@ -45,8 +45,8 @@ function renderHeader(){
             <a href="#" class="fw-bold text-light fs-4 text-decoration-none logo glow-text">IO.Game</a>
             <div class="d-flex gap-2">
               <a href="#login" class="btn btn-link text-light px-2 py-1 rounded nav-button">Login</a>
-              <a href="#register" class="btn btn-link text-light px-2 py-1 roundednav-button">Register</a>
-              <a href="#game" class="btn btn-link text-light px-2 py-1 rounded nav-button" >Game</a>
+              <a href="#register" class="btn btn-link text-light px-2 py-1 rounded nav-button">Register</a>
+              <a href="#game" class="btn btn-link text-light px-2 py-1 rounded nav-button">Game</a>
             </div>
           </div>
           <div class="d-flex align-items-center gap-0.75">
