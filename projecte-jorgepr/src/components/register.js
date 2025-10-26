@@ -1,12 +1,13 @@
 export { renderRegister };
-import { APIKEY_anon_public, singUpUrl } from "./enviroment";
+//import { APIKEY_anon_public, singUpUrl } from "../enviroment";
+import { singIN, updateUser } from "../services/backendapiservice";
 
 function renderRegister() {
   const codi1 = `
     <div class="card glow-effect">
             <div class="card-header">
-                <h3 class="card-title glow-text">Join the Game</h3>
-                <p class="card-description">Create your account to start playing</p>
+                <h3 class="card-title glow-text">Uneix-te al joc</h3>
+                <p class="card-description">Crea't uncompte per a començar a jugar</p>
             </div>
             <div class="card-content">
                 <form class="form" onsubmit="return handleSubmit(event)">
@@ -63,8 +64,8 @@ function renderRegister() {
   const codi = `
     <div class="card bg-dark text-light border-secondary glow-effect p-4">
             <div class="card-header">
-                <h3 class="card-title glow-text">Join the Game</h3>
-                <p class="card-description">Create your account to start playing</p>
+                <h3 class="card-title glow-text">Uneix-te al joc</h3>
+                <p class="card-description">Crea't uncompte per a començar a jugar</p>
             </div>
             <div class="card-content">
                 <form class="form d-flex flex-column gap-3" >
@@ -126,34 +127,58 @@ function renderRegister() {
   section.innerHTML = codi;
 
   const btn = section.querySelector("#enviarBtn");
-  const form = section.getElementsByTagName("form")[0];
 
   btn.addEventListener("click", (event) => {
     event.preventDefault();
-    if (form.elements.password.value === form.elements.confirmPassword.value) {
+    const form = new FormData(section.getElementsByTagName("form")[0]);
+
+    if (form.password === form.confirmPassword) {
+      const objForm = Object.fromEntries(form);
+
+      console.log("desde");
+      console.log(form);
       console.log("enviar");
-      registre(form);
+      console.log(objForm);
+
+      accioRegistre(objForm);
     }
   });
 
   return section;
 }
 
-async function registre(form) {
+const accioRegistre = async (form) => {
   const objecteSessio = {
-    email: form.elements.email.value.trim(),
-    password: form.elements.password.value
+    email: form.email.trim().toLowerCase(),
+    password: form.password,
   };
-  let response = await fetch(singUpUrl, {
-    method: "post",
-    headers: {
-      apiKey: APIKEY_anon_public,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(objecteSessio),
-  });
 
-  let data = await response.json();
-  console.log("Resposta:");
-  console.log(data);
-}
+  const resposta = await singIN(objecteSessio);
+  console.log('Acció Registre resposta:');
+  
+  console.log(resposta);
+
+  if (resposta.user) {
+
+    const modificat = await updateUser(resposta.user.id, resposta.access_token, {
+      username: form.username
+    });
+    console.log("Resposta:");
+    console.log(modificat);
+
+  } else {
+    const error = "Error amb el registre";
+    console.log(error);
+  }
+
+  //   let response = await fetch(singUpUrl, {
+  //     method: "post",
+  //     headers: {
+  //       apiKey: APIKEY_anon_public,
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify(objecteSessio),
+  //   });
+
+  //   let data = await response.json();
+};

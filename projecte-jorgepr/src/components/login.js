@@ -1,5 +1,5 @@
 export { renderLogin };
-import { APIKEY_anon_public, loginUrl } from "./enviroment";
+import { login } from '../services/backendapiservice'
 
 function renderLogin() {
   //https://mdbootstrap.com/docs/standard/extended/login/
@@ -112,32 +112,33 @@ function renderLogin() {
    btn.addEventListener("click", (event) => {
      event.preventDefault();
      console.log("enviar");
-     login(form);
+     actionLogin(form);
     });
 
   return section;
 }
 
 
-async function login(form) {
+async function actionLogin(form) {
     const objecteSessio = {
-      email: form.elements.email.value.trim(),
+      email: form.elements.email.value.trim().toLowerCase(),
       password: form.elements.password.value
     };
-    let response = await fetch(
-      loginUrl,
-      {
-        method: "post",
-        headers: {
-          apiKey: APIKEY_anon_public,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(objecteSessio)
-      }
-    );
+    const resposta = login(objecteSessio);
+    // let response = await fetch(
+    //   loginUrl,
+    //   {
+    //     method: "post",
+    //     headers: {
+    //       apiKey: APIKEY_anon_public,
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(objecteSessio)
+    //   }
+    // );
 
-    let data = await response.json();
+    // let data = await response.json();
     console.log("Resposta:")
-    console.log(data);
+    console.log(resposta);
   
 }
