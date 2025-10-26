@@ -68,7 +68,8 @@ function renderRegister() {
                 <p class="card-description">Crea't uncompte per a començar a jugar</p>
             </div>
             <div class="card-content d-flex gap-3">
-                <form class="form d-flex flex-column gap-3" >
+                <form class="col-6 form d-flex flex-column gap-3" >
+        
                     <div class="form-group ">
                         <label class="label" for="username">Username</label>
                         <input 
@@ -120,8 +121,8 @@ function renderRegister() {
                         <a href="#login" class="badge badge-dark linked">Inicia sessió</a>
                     </p>
                 </form>
-                <div class="container d-flex flex-column gap-4">
-                <canva id="imgCanva" class="border border-2 border-primary rounded-circle shadow-lg"></canva>
+                <div class="col-6 d-flex flex-column align-items-center">
+                <canva id="imgCanva" class="border border-2 border-primary rounded-circle m-4"></canva>
                 <input type="file" class="input w-50">
                 </div>
             </div>
