@@ -52,7 +52,7 @@ function renderHeader(){
           <div class="d-flex align-items-center gap-0.75">
             <span id="user" class="username m-2 fw-bold glow-text">${localStorage.getItem('user')}</span>
             <div id="userImg" class="avatar rounded-circle d-flex align-items-center justify-content-center glow-effect">
-            <img class="d-block w-100 rounded-circle" src="/public/Smiley-Emoticon.png">
+            <img class="d-block w-100 rounded-circle" src="../..//public/Smiley-Emoticon.png">
             </div>
           </div>
         </nav>
