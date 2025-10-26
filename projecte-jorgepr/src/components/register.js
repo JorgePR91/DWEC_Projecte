@@ -64,10 +64,10 @@ function renderRegister() {
   const codi = `
     <div class="card bg-dark text-light border-secondary glow-effect p-4">
             <div class="card-header">
-                <h3 class="card-title glow-text">Uneix-te al joc</h3>
+                <h3 class="card-title glow-text fw-bold">Uneix-te al joc</h3>
                 <p class="card-description">Crea't uncompte per a començar a jugar</p>
             </div>
-            <div class="card-content">
+            <div class="card-content d-flex gap-3">
                 <form class="form d-flex flex-column gap-3" >
                     <div class="form-group ">
                         <label class="label" for="username">Username</label>
@@ -114,12 +114,16 @@ function renderRegister() {
                         />
                         <span class="error" id="error-message" style="display: none;"></span>
                     </div>
-                    <button id="enviarBtn" type="submit" class="button btn btn-primary w-100">Register</button>
+                    <button id="enviarBtn" type="submit" class="button btn btn-primary w-100 fw-bold">Register</button>
                     <p class="text-center">
-                        Already have an account? 
-                        <a href="#login" class="link link-primary">Login here</a>
+                        Ja tens un compte? 
+                        <a href="#login" class="badge badge-dark linked">Inicia sessió</a>
                     </p>
                 </form>
+                <div class="container d-flex flex-column gap-4">
+                <canva id="imgCanva" class="border border-2 border-primary rounded-circle shadow-lg"></canva>
+                <input type="file" class="input w-50">
+                </div>
             </div>
         </div>
     `;
@@ -154,18 +158,20 @@ const accioRegistre = async (form) => {
   };
 
   const resposta = await singIN(objecteSessio);
-  console.log('Acció Registre resposta:');
-  
+  console.log("Acció Registre resposta:");
+
   console.log(resposta);
 
   if (resposta.user) {
-
-    const modificat = await updateUser(resposta.user.id, resposta.access_token, {
-      username: form.username
-    });
+    const modificat = await updateUser(
+      resposta.user.id,
+      resposta.access_token,
+      {
+        username: form.username,
+      }
+    );
     console.log("Resposta:");
     console.log(modificat);
-
   } else {
     const error = "Error amb el registre";
     console.log(error);

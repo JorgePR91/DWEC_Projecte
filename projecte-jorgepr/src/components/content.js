@@ -195,7 +195,8 @@ export function renderCanvas(volum = 30) {
   }
 
   const div = document.createElement('div');
-  div.setAttribute('id', 'gameCanvas')
+  div.setAttribute('id', 'gameCanvas');
+  div.classList.add('glow-effect');
   div.classList.add('board');
 
   div.innerHTML = contingut;

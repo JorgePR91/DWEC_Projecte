@@ -1,5 +1,5 @@
 @import "bootstrap/scss/bootstrap";
-
+  // https://www.eniun.com/resumen-clases-bootstrap-5-cheat-sheet/#7_Textos_en_Bootstrap_5
 * {
     margin: 0;
     padding: 0;
@@ -35,12 +35,18 @@ header {
   background: hsl(240, 10%, 20%);
 }
 .username{
-      color: hsl(180, 20%, 65%);
+  color: hsl(180, 100%, 95%);
 }
 .avatar {
+  width: 25px;
       border: 1px solid hsla(180, 100%, 50%, 0.5);
   background: hsla(180, 100%, 50%, 0.2);
     color: hsl(180, 100%, 50%);
+}
+#imgCanva {
+  //aspect-ratio: 1/1;
+  width: 100px;
+  height: 100px;
 }
 main {
   flex: 1;
@@ -52,7 +58,7 @@ main {
   /*PROVAR A FER PER MÍ*/
 }
 .cardClass{
-    border-radius: 0.75rem;
+  border-radius: 0.75rem;
   border: 1px solid hsl(240, 10%, 20%);
   background: hsl(240, 10%, 12%);
   color: hsl(180, 100%, 95%);
@@ -72,8 +78,19 @@ input:focus {
   box-shadow: 0 0 0 2px hsla(180, 100%, 50%, 0.2);
 }
 button {
-    box-shadow: 0 0 20px hsla(180, 100%, 50% , 0.4);
+  box-shadow: 0 0 20px hsla(180, 100%, 50% , 0.4);
   background: linear-gradient(135deg, hsl(180, 100%, 50%), hsl(160, 100%, 45%));  
+}
+.linked{
+  text-decoration: none;
+}
+.linked:hover{
+  text-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5),
+    0 0 20px hsla(180, 100%, 50%, 0.3);
+  text-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5),
+    0 0 20px hsla(180, 100%, 50%, 0.3);
+      color: hsl(180, 100%, 50%);
+
 }
 .button:hover {
   transform: translateY(-2px);
@@ -141,13 +158,7 @@ footer p {
 .serp {
   background-color: darkolivegreen;
 }
-
-button {
-  min-height: 50px;
-  background-color: #444;
-  color: white;
-}
-
+//--Efectes
 .glow-effect {
   box-shadow: 0 0 20px hsla(180, 100%, 50%, 0.3),
     0 0 40px hsla(180, 100%, 50%, 0.1);

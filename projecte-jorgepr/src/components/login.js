@@ -65,7 +65,7 @@ function renderLogin() {
   const codi = `
   <div class="card bg-dark text-light border-secondary glow-effect cardClass p-4">
             <div class="card-header">
-                <h3 class="card-title glow-text">Benvingut de nou!</h3>
+                <h3 class="card-title glow-text fw-bold">Benvingut de nou!</h3>
                 <p class="card-description">Introdueix les teues credencials per a jugar</p>
             </div>
             <div class="card-content">
@@ -92,10 +92,10 @@ function renderLogin() {
                             required
                         />
                     </div>
-                    <button type="submit" id="enviarBtn" class="button btn btn-primary w-100">Login</button>
-                    <p class="text-center text-muted">
+                    <button type="submit" id="enviarBtn" class="button btn btn-primary w-100 fw-bold">Login</button>
+                    <p class="text-center">
                         Don't have an account? 
-                        <a href="#register" class="link link-primary">Register here</a>
+                        <a href="#register" class="badge badge-dark linked">Registra't ací</a>
                     </p>
                 </form>
             </div>

@@ -72,7 +72,8 @@ const login = async (dadesUsuari) => {
   localStorage.setItem("access_token", resultat.access_token);
   localStorage.setItem("refresh_token", resultat.refresh_token);
   localStorage.setItem("expires_in", resultat.expires_in);
-  localStorage.setItem("user", resultat.user.email);
+  localStorage.setItem("user_email", resultat.user.email);
+  localStorage.setItem("user", resultat.user.username);
   return resultat;
 };
 // [x]  Mètode de singin guardant la info en localStorage
