@@ -1,37 +1,33 @@
-import "./style.scss";
 import { router } from "./router";
+import "./style.scss";
 
-import * as bootstrap from 'bootstrap';  // opcional, si usas el JS de Bootstrap
-
+//import { inici } from "./components/content";
+import { renderFooter } from "./components/footer";
 import { renderHeader } from "./components/header";
-import { renderContent, inici } from "./components/content";
-
 
 document.addEventListener("DOMContentLoaded", async () => {
-  
-window.addEventListener('error', e => {
-  console.error('❌ Error atrapado globalmente:', e.error || e.message);
-});
+  // window.addEventListener("error", (e) => {
+  //   console.error("❌ Error atrapado globalmente:", e.error || e.message);
+  // });
 
-window.addEventListener('unhandledrejection', e => {
-  console.error('❌ Error en promesa no manejada:', e.reason);
-});
+  // window.addEventListener("unhandledrejection", (e) => {
+  //   console.error("❌ Error en promesa no manejada:", e.reason);
+  // });
 
   //const appDiv = document.querySelector('#app');
-  const menuDiv = document.querySelector('#menu');
+  const menuDiv = document.querySelector("#menu");
+  menuDiv.innerHTML = renderHeader();
+  const footerDiv = document.querySelector("#footer");
+  footerDiv.innerHTML = renderFooter();
+
   const containerDiv = document.querySelector("#container");
+  const volum = 10;
 
-   menuDiv.innerHTML = renderHeader();
-   containerDiv.innerHTML = renderContent(10);
+  //AÇÒ POT DUPLICAR EL ROUTER PERQUÈ CRIDES A LA FUNCIÓ INNERHTML EN EL RUTER I SUBSTITUEIX TOT EL DIV
+  //PER A QUE NO ES RENDERITZE TOT DOS VEGADES SOLES RENDERITZEM AMB EL ROUTER, RES DE INNERHTML RENDERCONTENT
+  router(window.location.hash, containerDiv, volum);
 
-  let button = document.createElement('button');
-  button.textContent = "Inici";
-  containerDiv.appendChild(button);
-
-  button.addEventListener('click', inici());
-
-  router(window.location.hash, containerDiv);
   window.addEventListener("hashchange", () => {
-    router(window.location.hash, containerDiv);
+    router(window.location.hash, containerDiv, volum);
   });
 });

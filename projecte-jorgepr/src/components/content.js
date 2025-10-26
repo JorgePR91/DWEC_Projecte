@@ -1,26 +1,33 @@
-/* eslint-disable no-undef */
-export { inici, renderContent };
-
-//Necessitem tres poss= cap (fa l'acció), cua (per a eliminar-se), coll
-
 //FUNCIÓ D'INICI
-function inici() {
-  let canvas = crearCanvas(10);
+export function inici(volum) {
+  let canvas = crearCanvas(volum);
 
+  //POSSICIÓ INICIAL DE LA SERP
+  let posicioInicialX = Math.floor(canvas.length / 2);
+  let posicioInicialY = Math.floor(canvas.length / 2);
 
+  canvas[posicioInicialX][posicioInicialY].pos = 1;
+  canvas[posicioInicialX][posicioInicialY].estat = "serp";
+  pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
   afegirPoma(canvas);
-  pintar(Math.floor(canvas.length / 2), Math.floor(canvas.length / 2), "serp");
+  let interval;
 
-  document.addEventListener("keydown", (event, canvas) => {
-    moviment(event, canvas);
+  //MOVIMENT DE LA SERP
+  document.addEventListener("keydown", (event) => {
+    clearInterval(interval);
+    interval = setInterval(() => moviment(event, canvas), 200);
   });
+
+  return interval;
+
+  //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
 }
 
-function crearCanvas(volum = 30) {
+function crearCanvas(volum = 10) {
   //El map sols opera amb elements existents, així que si no l'omplim no entra
 
-  return new Array(volum).fill(null).map((_, y) =>
-    new Array(volum).fill(null).map((_, x) => ({
+  return new Array(volum).fill(null).map((_, x) =>
+    new Array(volum).fill(null).map((_, y) => ({
       x: x,
       y: y,
       estat: null,
@@ -31,165 +38,204 @@ function crearCanvas(volum = 30) {
 
 //FUNCIONS DE MOVIEMNT DE LA SERP
 function moviment(event, canvas) {
-  let cap = canvas.filter((c) => c.pos == 1);
+  let cap;
+
+  for (let fila of canvas)
+    for (let element of fila) if (element.pos === 1) cap = element;
+  //console.log(`Cap: `);
+  //console.log(cap);
+
+  if (!cap) return;
+
+  let coordNoves;
 
   switch (event.key) {
     case "ArrowUp":
-      {
-        if (comprovarLimit(cap.y--, canvas)) {
-          disminuir(canvas);
-        } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
-          canvas[cap.x][cap.y--].pos++;
-          pintar(cap.x, cap.y--, "serp");
-          canvas[cap.x][cap.y--].estat !== null
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
-        }
-      }
+      coordNoves = { x: cap.x, y: cap.y - 1 };
       break;
     case "ArrowRight":
-      {
-        if (comprovarLimit(cap.x++, canvas)) {
-          disminuir(canvas);
-        } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
-          canvas[cap.x++][cap.y].pos++;
-          pintar(cap.x++, cap.y, "serp");
-          canvas[cap.x++][cap.y].estat !== null
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
-        }
-      }
+      coordNoves = { x: cap.x + 1, y: cap.y };
       break;
     case "ArrowDown":
-      {
-        if (comprovarLimit(cap.y++, canvas)) {
-          disminuir(canvas);
-        } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
-          canvas[cap.x][cap.y++].pos++;
-          pintar(cap.x, cap.y++, "serp");
-          canvas[cap.x][cap.y++].estat !== null
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
-        }
-      }
+      coordNoves = { x: cap.x, y: cap.y + 1 };
       break;
     case "ArrowLeft":
-      {
-        if (comprovarLimit(cap.x--, canvas)) {
-          disminuir(canvas);
-        } else {
-          canvas.filter((c) => c.pos > 0).map((c) => c.pos++);
-          canvas[cap.x--][cap.y].pos++;
-          pintar(cap.x--, cap.y, "serp");
-          canvas[cap.x--][cap.y].estat !== null
-            ? afegirPoma(canvas)
-            : disminuir(canvas);
-        }
-      }
+      coordNoves = { x: cap.x - 1, y: cap.y };
       break;
+    default:
+      return;
+  }
+
+  if (
+    comprovarLimit(coordNoves, canvas) ||
+    canvas[coordNoves.x][coordNoves.y].estat === "serp"
+  ) {
+    disminuir(canvas);
+    //   for (let fila of canvas)
+    // for (let element of fila) if (element.pos > 1) element.pos--;
+  } else {
+    for (let fila of canvas)
+      for (let element of fila) if (element.pos > 0) element.pos++;
+    canvas[coordNoves.x][coordNoves.y].pos++;
+    pintar(coordNoves, "serp");
+
+    if (canvas[coordNoves.x][coordNoves.y].estat === "poma") {
+      afegirPoma(canvas);
+      canvas[coordNoves.x][coordNoves.y].estat = "serp";
+      canvas[coordNoves.x][coordNoves.y].estat === "serp";
+    } else {
+      canvas[coordNoves.x][coordNoves.y].estat = "serp";
+      disminuir(canvas);
+    }
   }
 }
 
 function comprovarLimit(pos, canvas) {
-  if (pos >= canvas.size || pos <= 0) return true;
-  else return false;
+  if (pos.x >= canvas.length || pos.y >= canvas.length) return true;
+  if (pos.x < 0 || pos.y < 0) return true;
+  return false;
 }
 
 function disminuir(canvas) {
-  let cua = canvas.filter((c) => c.pos > 0).max;
+  let cua = canvas
+    .flat()
+    .reduce((accumulador, actual) =>
+      actual.pos >= accumulador.pos ? actual : accumulador
+    );
+
+  //console.log("Cua:");
+  //console.log(cua);
+
   cua.pos = 0;
-  borrar(cua.x, cua.y, "serp");
+  cua.estat = null;
+  borrar(cua, "serp");
 }
 
 //FUNCIÓ DE AFEGIR ELEMENTS(SOLS 1 DE TIPUS)
 function afegirPoma(canvas) {
-console.log("Afegint poma...")
+  console.log("Afegint poma...");
 
-  //OJO SI EL RANDOM TRAU 0
-  let x = Math.floor(Math.random() * canvas.length);
-  let y = Math.floor(Math.random() * canvas.length);
+  //  let x = Math.floor(Math.random() * canvas.length);
+  //  let y = Math.floor(Math.random() * canvas.length);
 
-  let poma = canvas.filter((c) => c.estat === "poma");
+  let arrCasLliures = canvas.flat().filter((c) => c.estat === null);
 
-  if (canvas[x][y].estat === null) {
+  if (arrCasLliures.length === 0) finalitzarJoc();
 
-    canvas[x][y].estat = "poma";
-    pintar(x, y, "poma");
+  let novaPoma =
+    arrCasLliures[Math.floor(Math.random() * arrCasLliures.length)];
 
-    if(poma.estat === "poma"){
-      console.log("Poma: "+typeof poma)
-      borrar(poma.x, poma.y, "poma");
-      poma.estat = null;
-    } 
-    
-  } else if (canvas.filter(null).size == 0) {
-    finalitzarJoc();
-  } else {
-    afegirPoma(canvas);
+  let poma;
+
+  for (let fila of canvas)
+    for (let element of fila) if (element.estat === "poma") poma = element;
+  console.log("poma");
+
+  console.log(poma);
+
+  if (poma) {
+    poma.estat = null;
+    borrar(poma, "poma");
   }
+
+  // if (canvas[x][y].estat === null) {
+  //   canvas[x][y].estat = "poma";
+  //   pintar({ x: x, y: y }, "poma");
+  // } else if (canvas.flat().filter((e) => e.estat === null).length == 0) {
+  //   finalitzarJoc();
+  // } else {
+  //   afegirPoma(canvas);
+  // }
+
+  canvas[novaPoma.x][novaPoma.y].estat = "poma";
+  pintar(canvas[novaPoma.x][novaPoma.y], "poma");
 }
 
-//FUNCIÓ DE CREIXEMENT DE LA SERP
-// function creixer(canvas, pos){
-//      canvas.filter(e => e.pos > 0).max;
-// }
+export function renderContent(volum = 10) {
 
-//FUNCIÓ D'EFECTE DE MENJAR
-// function menjar(canvas){
-//   creixer(canvas);
-// }
+  const section = document.createElement("section");
+  section.setAttribute('id', 'sectionGame')
+
+    const div = document.createElement("div");
+  div.setAttribute('id', 'gameContainer');
+  div.classList.add('container');
+  div.classList.add('board-wrapper');
+    div.classList.add('mb-5');
+
+  div.appendChild(renderCanvas(volum));
+
+  section.appendChild(div);
+
+    let button = document.createElement("button");
+    button.textContent = "Inici";
+    button.classList.add('btn');
+    button.classList.add('btn-primary');
+    section.append(button);
+
+    button.addEventListener("click", () => {
+      document.querySelector("#gameContainer").replaceChild(renderCanvas(volum), div.querySelector('#gameCanvas'));
+      inici(volum);
+    });
+
+  return section;
+}
 
 //FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
-function renderContent(volum) {
-  let canvas = crearCanvas(volum);
-console.log("Render canvas...")
-  return `
-<div class="container board-wrapper">
-  <div class="board">
-  ${canvas
-    .map(
-      (f, indexY) => `<div class="columna">
-      ${f.map((_, indexX) => `<div id="${"" + indexX + indexY}" class="celda"></div>`).join("")}
-      </div>`
-    )
-    .join("")}
-  </div>
-</div>
-    `;
+export function renderCanvas(volum = 30) {
+  console.log("Render canvas...");
+
+  let contingut = "";
+
+  for (let i = 0; i < volum; i++) {
+    contingut += `<div class="columna">`;
+    for (let j = 0; j < volum; j++) {
+      contingut += `<div id="x${i}y${j}" class="celda"></div>`;
+    }
+    contingut += `</div>`;
+  }
+
+  const div = document.createElement('div');
+  div.setAttribute('id', 'gameCanvas');
+  div.classList.add('glow-effect');
+  div.classList.add('board');
+
+  div.innerHTML = contingut;
+
+  return div;
 }
 
-function pintar(x, y, forma) {
-  let id = "" + x + y;
-  console.log(id);
-
+function pintar(coord, forma) {
+  let id = "x" + coord.x + "y" + coord.y;
   let casella = document.getElementById(id);
-    console.log("A pintar " + "#" + id+" forma: "+forma);
+
+  console.log("A pintar " + "#" + id + " forma: " + forma);
+
   casella.classList.add(forma);
   console.log(casella);
-
-
-  casella.estat = forma;
 }
 
-function borrar(x, y, forma) {
-  let id = "" + x + y;
-
+function borrar(coord, forma) {
+  let id = "x" + coord.x + "y" + coord.y;
   let casella = document.getElementById(id);
 
-  console.log("A borrar " + "#" + id+" forma: "+forma);
+  console.log("A borrar " + "#" + id + " forma: " + forma);
 
   casella.classList.remove(forma);
-  console.log(casella);
 
-  casella.estat = null;
+  console.log(casella);
 }
 
 //FUNCIÓ DE FINALITZAR JOC
-function finalitzarJoc() {
-console.log("S'acabó")
+function finalitzarJoc(st) {
+  clearInterval(st);
+  console.log("S'acabó");
 }
 
-//Canvas
+//MÈTODE COMPROVACIÓ SERP
+/*for (let fila of canvas) {
+      for (let element of fila) {
+        if (element.estat === "serp") {
+          console.log(element);
+        }
+      }
+    }*/
