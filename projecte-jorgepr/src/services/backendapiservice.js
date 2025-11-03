@@ -43,12 +43,18 @@ const sendSupabase = async (url, contingut) => {
   }
 };
 
-// [x] Mètode per a configurar el login enciatn a supabase
+// [x] Mètode per a configurar el login enciant a supabase
 const peticioPost = ({ hedaerData = null, body } = {}) => {
   return {
     method: "POST",
     headers: hedaerData ? crearHeader(hedaerData) : crearHeader(),
     body: JSON.stringify(body),
+  };
+};
+const peticioGet = ({ hedaerData = null } = {}) => {
+  return {
+    method: "GET",
+    headers: hedaerData ? crearHeader(hedaerData) : crearHeader(),
   };
 };
 const peticioPatch = ({ hedaerData = {}, body = {} } = {}) => {
@@ -59,8 +65,15 @@ const peticioPatch = ({ hedaerData = {}, body = {} } = {}) => {
   };
 };
 
-// [x] Mètode per a configurar el singin enciatn a supabase
+// [x] Mètode per a agafar dades de Profiles a supabase
+const getProfile = async (id = localStorage.getItem("user_id"), token = localStorage.getItem("access_token")) => {
+  const profile =  await sendSupabase(`id=eq.${id}&select=*`, peticioGet({
+hedaerData : { Authorization: `Bearer ${token}`}
+  }));
+  const urlImg = profile[0].avatar_url;
+}
 
+//[ ] Normalitzar nom de imatge, canviar pel correu.
 // [x]  Mètode de login guardant la info en localStorage
 const login = async (dadesUsuari) => {
   const resultat = await sendSupabase(
@@ -80,6 +93,7 @@ const login = async (dadesUsuari) => {
 const singIN = async (dadesUsuari) => {
   return await sendSupabase(singUpUrl, peticioPost({ body: dadesUsuari }));
 };
+
 // [x] Mètode per a actualitzar genèric
 const updateUser = async (id, access_token = undefined, dadesUsuari) => {
   console.log("UptadeUser method");
@@ -96,14 +110,14 @@ const updateUser = async (id, access_token = undefined, dadesUsuari) => {
 
 // [ ] Mètode per a carregar la foto
 // 1º Necessitem la foto quan es carrega la sessió, i quan és carrega el edit: l'usuari estarà donat d'alta i tindrem en localstorage 
-const chargePhoto = (id) => {
-  //està en localstorage
-  return localStorage.getItem("user_img")?
-    localStorage.getItem("user_img"): 
-    crearHeader({})
-    `${updateUrl}select=avatar_url`; 
+// const chargePhoto = (id) => {
+//   //està en localstorage
+//   return localStorage.getItem("user_img")?
+//     localStorage.getItem("user_img"): 
+//     crearHeader({})
+//     `${updateUrl}select=avatar_url`; 
 
-};
+// };
 
 /* COMENT Separación clara de capas:
     fetchSupabase: Capa de infraestructura (HTTP)
