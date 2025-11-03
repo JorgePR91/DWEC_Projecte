@@ -75,6 +75,7 @@ const login = async (dadesUsuari) => {
   localStorage.setItem("user_id", resultat.user.id);
   return resultat;
 };
+
 // [x]  Mètode de singin guardant la info en localStorage
 const singIN = async (dadesUsuari) => {
   return await sendSupabase(singUpUrl, peticioPost({ body: dadesUsuari }));
@@ -98,7 +99,10 @@ const updateUser = async (id, access_token = undefined, dadesUsuari) => {
 const chargePhoto = (id) => {
   //està en localstorage
   return localStorage.getItem("user_img")?
-    localStorage.getItem("user_img"): ; 
+    localStorage.getItem("user_img"): 
+    crearHeader({})
+    `${updateUrl}select=avatar_url`; 
+
 };
 
 /* COMENT Separación clara de capas:
