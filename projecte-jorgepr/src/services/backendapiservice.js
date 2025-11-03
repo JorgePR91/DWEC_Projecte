@@ -67,10 +67,20 @@ const peticioPatch = ({ hedaerData = {}, body = {} } = {}) => {
 
 // [x] Mètode per a agafar dades de Profiles a supabase
 const getProfile = async (id = localStorage.getItem("user_id"), token = localStorage.getItem("access_token")) => {
-  const profile =  await sendSupabase(`id=eq.${id}&select=*`, peticioGet({
+  let profile =  await sendSupabase(`id=eq.${id}&select=*`, peticioGet({
 hedaerData : { Authorization: `Bearer ${token}`}
   }));
-  const urlImg = profile[0].avatar_url;
+  if(!profile.length) return null;
+  let urlImg = profile[0].avatar_url;
+  profile[0].avatar_blob = false;
+  if (urlImg) {
+    let imageData = await sendSupabase(urlImg, peticioGet({Authorization: `Bearer ${token}`}));
+    // imageData.status !== ok&& return null;
+    if(imageData instanceof Blob)
+      profile[0].avatar_blob = URL.createObjectURL(imageData);
+    //URL.revokeObjectURL(). al tancar sessió per a borrar-la
+  }
+  return profile;
 }
 
 //[ ] Normalitzar nom de imatge, canviar pel correu.
@@ -103,7 +113,7 @@ const updateUser = async (id, access_token = undefined, dadesUsuari) => {
     `${updateUrl}id=eq.${id}`,
     peticioPatch({
       hedaerData: { Authorization: access_token, Prefer: "return=representation" },
-      body: dadesUsuari,
+      body: dadesUsuari
     })
   );
 };

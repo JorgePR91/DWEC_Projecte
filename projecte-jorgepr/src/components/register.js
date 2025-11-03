@@ -121,10 +121,12 @@ function renderRegister() {
                         <a href="#login" class="badge badge-dark linked">Inicia sessió</a>
                     </p>
                 </form>
+                <form id="imgForm">
                 <div class="col-6 d-flex flex-column align-items-center">
                 <canva id="imgCanva" class="border border-2 border-primary rounded-circle m-4"></canva>
                 <input type="file" class="input w-50">
                 </div>
+                </form>
             </div>
         </div>
     `;
