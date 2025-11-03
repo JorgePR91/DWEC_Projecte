@@ -30,8 +30,6 @@ const crearHeader = ({
 // [x] Mètode per a enviar a supabase
 // NOTE Sempre transformem el que rebem del server en json i després el transformem en objecte amb stifly eixe
 const sendSupabase = async (url, contingut) => {
-  console.log(contingut);
-
   try {
     const resposta = await fetch(url, contingut);
     if (resposta.ok) {
@@ -74,6 +72,7 @@ const login = async (dadesUsuari) => {
   localStorage.setItem("expires_in", resultat.expires_in);
   localStorage.setItem("user_email", resultat.user.email);
   localStorage.setItem("user", resultat.user.username);
+  localStorage.setItem("user_id", resultat.user.id);
   return resultat;
 };
 // [x]  Mètode de singin guardant la info en localStorage
@@ -95,6 +94,12 @@ const updateUser = async (id, access_token = undefined, dadesUsuari) => {
 };
 
 // [ ] Mètode per a carregar la foto
+// 1º Necessitem la foto quan es carrega la sessió, i quan és carrega el edit: l'usuari estarà donat d'alta i tindrem en localstorage 
+const chargePhoto = (id) => {
+  //està en localstorage
+  return localStorage.getItem("user_img")?
+    localStorage.getItem("user_img"): ; 
+};
 
 /* COMENT Separación clara de capas:
     fetchSupabase: Capa de infraestructura (HTTP)
