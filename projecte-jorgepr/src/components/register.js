@@ -1,8 +1,8 @@
 export { renderRegister };
 //import { APIKEY_anon_public, singUpUrl } from "../enviroment";
-import { singIN, updateUser } from "../services/backendapiservice";
+import { singIN, updateUser, getProfile } from "../services/backendapiservice";
 
-function renderRegister() {
+async function renderRegister() {
   const codi1 = `
     <div class="card glow-effect">
             <div class="card-header">
@@ -68,7 +68,7 @@ function renderRegister() {
                 <p class="card-description">Crea't uncompte per a començar a jugar</p>
             </div>
             <div class="card-content d-flex gap-3">
-                <form class="col-6 form d-flex flex-column gap-3" >
+                <form id="profile_register" class="col-6 form d-flex flex-column gap-3" >
         
                     <div class="form-group ">
                         <label class="label" for="username">Username</label>
@@ -151,9 +151,34 @@ function renderRegister() {
     }
   });
 
+
+
+  if(localStorage.getItem("expires_in") > 0){
+ const profile = getProfile(localStorage.getItem("user_id"), localStorage.getItem("access_token"));
+ redimensioPutImg(section.querySelector("#imgCanva"), profile.avatar_blob);
+   
+  } 
+
+
   return section;
 }
 
+// Mètode per a redimensionar la imatge clavant-a en el canvas
+const redimensioPutImg = (canvas, imatge) => {
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.height,canvas.width);
+    const proporcio = Math.min(canvas.width / imatge.width, canvas.height / imatge.height);
+    const ample = imatge.width*proporcio;
+    const alt = imatge.height*proporcio;
+    const posX = (canvas.width-ample)/2;
+    const posY = (canvas.height-alt)/2;
+    ctx.drawImage(imatge, posX, posY, ample, alt);
+    
+    return canvas;
+}
+
+// Mètode de registre/actualització
 const accioRegistre = async (form) => {
   const objecteSessio = {
     email: form.email.trim().toLowerCase(),

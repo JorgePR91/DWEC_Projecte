@@ -57,4 +57,6 @@ function renderHeader(){
           </div>
         </nav>
     `;
-}
+//Mètode per a enviar un 
+
+  }

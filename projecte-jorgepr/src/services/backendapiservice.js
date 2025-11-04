@@ -66,13 +66,17 @@ const peticioPatch = ({ hedaerData = {}, body = {} } = {}) => {
 };
 
 // [x] Mètode per a agafar dades de Profiles a supabase
-const getProfile = async (id = localStorage.getItem("user_id"), token = localStorage.getItem("access_token")) => {
+export const getProfile = async (id = localStorage.getItem("user_id"), token = localStorage.getItem("access_token")) => {
   let profile =  await sendSupabase(`id=eq.${id}&select=*`, peticioGet({
 hedaerData : { Authorization: `Bearer ${token}`}
   }));
   if(!profile.length) return null;
   let urlImg = profile[0].avatar_url;
+  
+  //Li clavem les propietats que volem afegir de la taula.
+  // -- volem un camp per a la imatge en blob
   profile[0].avatar_blob = false;
+
   if (urlImg) {
     let imageData = await sendSupabase(urlImg, peticioGet({Authorization: `Bearer ${token}`}));
     // imageData.status !== ok&& return null;
@@ -80,7 +84,7 @@ hedaerData : { Authorization: `Bearer ${token}`}
       profile[0].avatar_blob = URL.createObjectURL(imageData);
     //URL.revokeObjectURL(). al tancar sessió per a borrar-la
   }
-  return profile;
+  return profile[0];
 }
 
 //[ ] Normalitzar nom de imatge, canviar pel correu.
@@ -90,12 +94,14 @@ const login = async (dadesUsuari) => {
     loginUrl,
     peticioPost({ body: dadesUsuari })
   );
+  
   localStorage.setItem("access_token", resultat.access_token);
   localStorage.setItem("refresh_token", resultat.refresh_token);
   localStorage.setItem("expires_in", resultat.expires_in);
   localStorage.setItem("user_email", resultat.user.email);
   localStorage.setItem("user", resultat.user.username);
   localStorage.setItem("user_id", resultat.user.id);
+
   return resultat;
 };
 
