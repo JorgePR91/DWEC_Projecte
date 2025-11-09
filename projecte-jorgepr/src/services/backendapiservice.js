@@ -1,6 +1,5 @@
-/*
-TODO_FUTURE Mètode getBearer: bàsicament és un token d'usuari, s'introdueix en la petició dins dels headers, en l'atribut autorization. Ha de començar per "Bearer ****"". Castillo el busca en el localStorage amb el nom access_token.
-*/
+
+
 import {
   APIKEY_anon_public,
   singUpUrl,
@@ -9,7 +8,9 @@ import {
 } from "../enviroment";
 export { login, singIN, updateUser };
 
-// [x] MÈTODE DE CREACIÓ DE Headers
+// [x] MÈTODE DE CREACIÓ DE Headers (JCastillo)
+// entrada: atributs dels headers
+// eixida: headers per a les peticions
 // NOTE Sentit: practicar la composició de paràmetres com atributs i per a poder fer peticions més complexes i diferents
 const crearHeader = ({
   ContentType = "application/json",
@@ -24,10 +25,15 @@ const crearHeader = ({
   Prefer && header.append("Prefer", Prefer);
   return header;
 };
-//Mètode de donar tokens
+//Mètode de donar tokens o bearer per a les peticions6, reb ¿? retonna el token de localstorage.
+/*
+TODO_FUTURE Mètode getBearer: bàsicament és un token d'usuari, s'introdueix en la petició dins dels headers, en l'atribut autorization. Ha de començar per "Bearer ****"". Castillo el busca en el localStorage amb el nom access_token.
+*/
 
 
-// [x] Mètode per a enviar a supabase
+// [x] Mètode per a enviar a supabase (JCastillo)
+// entrada: url i contingut de la petició
+// eixida: resposta del servidor o error
 // NOTE Sempre transformem el que rebem del server en json i després el transformem en objecte amb stifly eixe
 const sendSupabase = async (url, contingut) => {
   try {
@@ -43,7 +49,9 @@ const sendSupabase = async (url, contingut) => {
   }
 };
 
-// [x] Mètode per a configurar el login enciant a supabase
+// [x] Mètode per a configurar la petició a supabase
+// entrada: headers i contingut de la petició
+// eixida: resposta del servidor
 const peticioPost = ({ hedaerData = null, body } = {}) => {
   return {
     method: "POST",
@@ -66,6 +74,8 @@ const peticioPatch = ({ hedaerData = {}, body = {} } = {}) => {
 };
 
 // [x] Mètode per a agafar dades de Profiles a supabase
+// entrada: id de l'usuari (per defecte el de localstorage), token d'accés (per defecte el de localstorage)
+// eixida: objecte profile amb les dades de l'usuari i la imatge
 export const getProfile = async (id = localStorage.getItem("user_id"), token = localStorage.getItem("access_token")) => {
   let profile =  await sendSupabase(`id=eq.${id}&select=*`, peticioGet({
 hedaerData : { Authorization: `Bearer ${token}`}
@@ -89,6 +99,9 @@ hedaerData : { Authorization: `Bearer ${token}`}
 
 //[ ] Normalitzar nom de imatge, canviar pel correu.
 // [x]  Mètode de login guardant la info en localStorage
+// entrada: Necessita les dades de formulari
+// internament: toca el localStorage
+// eixida: resposta del servidor
 const login = async (dadesUsuari) => {
   const resultat = await sendSupabase(
     loginUrl,

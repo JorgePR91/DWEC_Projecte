@@ -119,7 +119,9 @@ function renderLogin() {
   return section;
 }
 
-// Mètode de logetjar. FALTA RESPOSTA
+// Mètode de logetjar: 
+// entrada: formulari -> agafar les dades de login
+// eixida: resposta del servidor per a mostrar missatge d'èxit o error
 const actionLogin = async (form) => {
     const objecteSessio = {
       email: form.elements.email.value.trim().toLowerCase(),

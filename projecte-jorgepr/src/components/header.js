@@ -57,6 +57,6 @@ function renderHeader(){
           </div>
         </nav>
     `;
-//Mètode per a enviar un 
+//¿ ? Per a calvar la imatge i el nom d'usuari ho fem amb un esdeveniment creat o agafant-ho de localStorage
 
   }

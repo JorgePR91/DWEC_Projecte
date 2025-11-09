@@ -1,5 +1,13 @@
-//FUNCIÓ D'INICI
-export function inici(volum) {
+export { inici }
+// TODO Decidir si separem la part lògica de la visual: esdeveniment personalitzat per a que carregue: un document per al container i altre per al joc i en el moment que la matriu del joc canvie li enviem l'esdeveniment personalitzat al carregar el canvas.
+// Saber què carregaria millor el navegador: canviar l'estil de les casselles o divs vs canviar la classe; canviar sols les casselles afectades o tot el tauler
+
+
+// [ ] FUNCIÓ D'INICI
+// entrada: volum de la matriu
+// internament: agafa un element del dom per a modificar
+// eixida: interval
+function inici(volum) {
   let canvas = crearCanvas(volum);
 
   //POSSICIÓ INICIAL DE LA SERP
@@ -23,6 +31,9 @@ export function inici(volum) {
   //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
 }
 
+//[x] Funció per a crear la matriu interna
+// entrada: la grandària
+// eixida: la matriu
 function crearCanvas(volum = 10) {
   //El map sols opera amb elements existents, així que si no l'omplim no entra
 
@@ -36,7 +47,11 @@ function crearCanvas(volum = 10) {
   );
 }
 
-//FUNCIONS DE MOVIEMNT DE LA SERP
+//[ ] FUNCIONS DE MOVIEMNT DE LA SERP
+// entrada: l'esdeveniment i el canvas html
+// internament: sols toca el canvas intern
+// eixida: res
+// NOTE pot retornar una còpia així no modifica el paràmetre rebut
 function moviment(event, canvas) {
   let cap;
 
@@ -90,12 +105,20 @@ function moviment(event, canvas) {
   }
 }
 
+// [ ] funció per a saber si estem en el límit
+// entrada: possició i canvas intern
+// eixida: booleà
+// NOTE fer-ho dins del mètode de moviment amb una ternària?
 function comprovarLimit(pos, canvas) {
   if (pos.x >= canvas.length || pos.y >= canvas.length) return true;
   if (pos.x < 0 || pos.y < 0) return true;
   return false;
 }
 
+//[ ] Funció per a disminuir la serp
+// entrada: canvas html?
+// eixida: res
+// NOTE com a eixida una còpia del canvas? un array amb la nova serp -implicaria que cada vegada que disminuira es tinguera que col·locar novament en el canvas, tenint que fer un nou mètode.
 function disminuir(canvas) {
   let cua = canvas
     .flat()
@@ -111,7 +134,9 @@ function disminuir(canvas) {
   borrar(cua, "serp");
 }
 
-//FUNCIÓ DE AFEGIR ELEMENTS(SOLS 1 DE TIPUS)
+//[ ] Funció d'afegir poma
+// entrada: tot el canvas
+// eixida: res
 function afegirPoma(canvas) {
   console.log("Afegint poma...");
 
@@ -151,6 +176,10 @@ function afegirPoma(canvas) {
   pintar(canvas[novaPoma.x][novaPoma.y], "poma");
 }
 
+// [ ] Funció per a renderitzar el contingut: botó amb canvas
+// entrada: volum del canvas
+// internament toca el document
+// eixida: element de secció
 export function renderContent(volum = 10) {
 
   const section = document.createElement("section");
@@ -180,7 +209,10 @@ export function renderContent(volum = 10) {
   return section;
 }
 
-//FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
+//[ ] FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
+// entrada: volum de la matriu
+// internament: toca el document per a afegir coses i crear
+// eixida: element amb el canvas o div
 export function renderCanvas(volum = 30) {
   console.log("Render canvas...");
 
@@ -204,6 +236,10 @@ export function renderCanvas(volum = 30) {
   return div;
 }
 
+//[ ] Funció per a canviar l'estat d'una casella
+// entrada: cooredenades de la casella i forma a canviar
+// internament: agafa elements del document
+// eixida: res
 function pintar(coord, forma) {
   let id = "x" + coord.x + "y" + coord.y;
   let casella = document.getElementById(id);
@@ -214,6 +250,10 @@ function pintar(coord, forma) {
   console.log(casella);
 }
 
+//[ ] Funció per a canviar l'estat/esborrar d'una casella
+// entrada: cooredenades de la casella i forma a canviar
+// internament: agafa elements del document
+// eixida: res
 function borrar(coord, forma) {
   let id = "x" + coord.x + "y" + coord.y;
   let casella = document.getElementById(id);
@@ -225,7 +265,10 @@ function borrar(coord, forma) {
   console.log(casella);
 }
 
-//FUNCIÓ DE FINALITZAR JOC
+//[ ] Funció per a finalitzar el joc
+// entrada: l'interval
+// eixida: res
+// ¿ ? falta definir-la millor
 function finalitzarJoc(st) {
   clearInterval(st);
   console.log("S'acabó");
