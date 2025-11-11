@@ -109,12 +109,12 @@ function renderLogin() {
    const btn = section.querySelector("#enviarBtn");
    const form = section.querySelector("#formDadesUsu");
 
-   btn.addEventListener("click", (event) => {
-     event.preventDefault();
-     console.log("enviar");
-    if(actionLogin(form))
-        const iniciSessio = new CostumEvent();
-    });
+  //  btn.addEventListener("click", (event) => {
+  //    event.preventDefault();
+  //    console.log("enviar");
+  //   if(actionLogin(form))
+  //       //const iniciSessio = new CostumEvent();
+  //   });
 
   return section;
 }
