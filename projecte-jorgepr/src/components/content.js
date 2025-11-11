@@ -15,20 +15,54 @@ const inici = (volum) => {
   let posicioInicialX = Math.floor(volum / 2);
   let posicioInicialY = Math.floor(volum / 2);
 
-let serp = {
+const serp = [{
   x: posicioInicialX,
   y: posicioInicialY,
   estat: "serp",
   pos: 1
- };
+ }];
+ console.log(serp);
+ /*
+ ¿Cómo solucionarlo?
+Debes mantener el estado de serp y poma fuera de la función de evento, y actualizarlo tras cada movimiento.
+El intervalo debe ejecutarse de forma continua, y solo cambiar la dirección con la tecla, no reiniciar el intervalo.
+Tras cada movimiento, debes redibujar el canvas con el nuevo estado.
+Resumen:
+La serpiente no se mueve porque el estado no se actualiza correctamente y el renderizado no se produce tras cada movimiento. Además, el manejo del intervalo no es el adecuado para un juego de tipo Snake.
+1. Poner en orden y combinar métodos existentes
+Sí, es necesario. Tienes la mayoría de funciones necesarias, pero el flujo de datos y el renderizado no están bien conectados.
+Debes mantener el estado de la serpiente (serp), la manzana (poma) y la dirección actual en variables que sean accesibles por el bucle principal del juego.
+El bucle principal debe:
+Calcular el nuevo estado (movimiento).
+Actualizar las variables de estado.
+Redibujar el canvas.
+2. ¿Hace falta escribir algún método nuevo?
+No es estrictamente necesario escribir métodos nuevos, pero sí debes:
+Añadir una función de “bucle de juego” (game loop) que se ejecute cada X milisegundos y mueva la serpiente en la dirección actual.
+Añadir una función para actualizar el DOM tras cada movimiento.
+Añadir lógica para cambiar la dirección con las teclas, sin reiniciar el intervalo.
+3. ¿Un custom event lo solucionaría?
+No es imprescindible para un Snake sencillo, pero puede ser útil si quieres separar la lógica del juego de la visualización.
+Un custom event sería útil si quieres que la lógica del juego emita un evento cada vez que cambia el estado, y la vista (canvas) escuche ese evento para redibujar.
+Para tu caso, puedes solucionarlo simplemente organizando el flujo y el estado, sin necesidad de custom events.
+Enfoque recomendado (resumido):
+1. Variables globales (o de módulo) para serp, poma, direccion, interval.
+2. Al pulsar una tecla, solo cambias la dirección.
+3. El intervalo llama a una función que:
+
+Calcula el nuevo estado con moviment.
+Actualiza las variables.
+Redibuja el canvas.
+4. Solo reinicias el intervalo al iniciar o reiniciar el juego, no en cada tecla.
+ */
   let canvas = document.querySelector('#gameCanvas');
-  let poma =joc.afegirPoma({serp, volum});
-  updateCanvas({canvas, serp, poma})
+  let poma = joc.afegirPoma({serp, volum});
+  canvas.replaceChildren(updateCanvas({canvas, serp, poma}))
   let interval;
 
   //MOVIMENT DE LA SERP
   document.addEventListener("keydown", (event) => {
-    clearInterval(interval);
+    // clearInterval(interval);
     interval = setInterval(() => joc.moviment({event, serp, poma, volum}), 200);
   });
 
@@ -145,16 +179,18 @@ function borrar(coord, forma) {
 const updateCanvas = ({canvas, serp, poma}) => {
   
   let nouCanvas = canvas.cloneNode(true);
-  nouCanvas.forEach(element => element.className = "celda"
+  let celdes = nouCanvas.querySelectorAll('.celda');
+
+  celdes.forEach(element => element.className = "celda"
   );
 
   serp.forEach(element => {
     let id = "x" + element.x + "y" + element.y;
-    nouCanvas.getElementById(id).classList.add(element);
+    nouCanvas.querySelector(`#${id}`).classList.add(element.estat);
   });
 
   let idPoma = "x" + poma.x + "y" + poma.y;
-  nouCanvas.getElementById(idPoma).classList.add(poma.estat);
+  nouCanvas.querySelector(`#${idPoma}`).classList.add(poma.estat);
 
   return nouCanvas;
 }

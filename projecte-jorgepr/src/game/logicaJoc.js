@@ -1,4 +1,4 @@
-export { carregarEscenari, moviment };
+export { moviment };
 // TODO Decidir si separem la part lògica de la visual: esdeveniment personalitzat per a que carregue: un document per al container i altre per al joc i en el moment que la matriu del joc canvie li enviem l'esdeveniment personalitzat al carregar el canvas.
 // Saber què carregaria millor el navegador: canviar l'estil de les casselles o divs vs canviar la classe; canviar sols les casselles afectades o tot el tauler
 
@@ -27,8 +27,8 @@ const crearCanvas = (volum = 10) => {
 // internament: sols toca el canvas intern
 // eixida: res
 // NOTE pot retornar una còpia així no modifica el paràmetre rebut
-const moviment = (...{ event, serp, poma, volum }) => {
-  let cap = [...serp.filter((element) => element.pos === 1)];
+const moviment = ({ event, serp, poma, volum }) => {
+  let cap = serp.filter((element) => element.pos === 1)[0];
 
   if (!cap) finalitzarJoc();
 
@@ -52,21 +52,21 @@ const moviment = (...{ event, serp, poma, volum }) => {
   }
 
   if (
-    comprovarLimit({ coordNoves, volum }) ||
-    comprovarSerp({ coordNoves, serp })
+    comprovarLimit({obj: coordNoves, volum }) ||
+    comprovarSerp({ coord: coordNoves, obj: serp })
   ) {
     let novaSerp = disminuir(serp);
     return { novaSerp, poma };
   }
 
-  if (comprovarSerp({ coordNoves, poma })) {
+  if (comprovarSerp({coord: coordNoves, obj: [poma] })) {
     let novaSerp = creixerSerp({ coordNoves, serp });
     let novaPoma = afegirPoma(novaSerp);
 
     return { novaSerp, novaPoma };
   }
 
-  let novaSerp = creixerSerp({ coordNoves, serp });
+  let novaSerp = creixerSerp({ coordenades: coordNoves, serp });
 
   return { novaSerp, poma };
 }
@@ -74,7 +74,7 @@ const moviment = (...{ event, serp, poma, volum }) => {
 // [x] funció per a créixer la serp
 // entrada: objecte 1 (serp) i coordenades a augmentar
 // eixida: cópia de serp
-const creixerSerp = (...{ coordenades, serp }) => {
+const creixerSerp = ({coordenades, serp }) => {
   let serpAugmentada = structuredClone(serp);
   serpAugmentada.forEach((part) => part.pos++);
   serpAugmentada.unshift({
@@ -90,7 +90,7 @@ const creixerSerp = (...{ coordenades, serp }) => {
 // entrada: objecte 1 (cap de la serp) i canvas intern
 // eixida: booleà
 // NOTE fer-ho dins del mètode de moviment amb una ternària?
-const comprovarLimit = (...{ obj, volum }) => {
+const comprovarLimit = ({obj, volum }) => {
   if (obj.x >= volum || obj.y >= volum) return true;
   if (obj.x < 0 || obj.y < 0) return true;
   return false;
@@ -99,8 +99,8 @@ const comprovarLimit = (...{ obj, volum }) => {
 // [x] funció per a saber si xoquem amb serp
 // entrada: objecte 1 (cap de la serp) i coordenades noves
 // eixida: booleà
-const comprovarSerp = (...{ coord, serp }) => {
-  serp.forEach((element) => {
+const comprovarSerp = ({ coord, obj }) => {
+  obj.forEach((element) => {
     if ((element.x === coord.x) & (element.y === coord.y)) return true;
   });
   return false;
@@ -122,7 +122,11 @@ const disminuir = (serp) => {
 //[x] Funció d'afegir poma
 // entrada: serp i poma
 // eixida: poma
-export const afegirPoma = ({ serp, volum }) => {
+export const afegirPoma = ({serp, volum }) => {
+  console.log(serp);
+    if (!serp || !Array.isArray(serp)) {
+    throw new Error("Serp no està inicialitzada correctament");
+  }
   if (serp.length === Math.sqrt(volum)) return finalitzarJoc();
 
   let arrCasellesLliures = Array(volum).fill(null).map((_, x) =>
@@ -130,9 +134,14 @@ export const afegirPoma = ({ serp, volum }) => {
       x: x,
       y: y
     }))
-  );
-  let pos = Math.random(novaPossicio.length);
-  let novaPoma = arrCasellesLliures.flat()[pos];
+  ).flat().filter(e => !comprovarSerp({coord: e, obj: serp}));
+
+    let pos = Math.floor(Math.random()*arrCasellesLliures.length);
+    console.log(arrCasellesLliures);
+    
+    let novaPoma = structuredClone(arrCasellesLliures[pos]);
+console.log(novaPoma);
+
   novaPoma.estat = "poma";
 
   return novaPoma;
