@@ -4,6 +4,19 @@ export { moviment };
 
 //SERP ÉS UN ARRAY D'OBJECTES
 //POMA ÉS UN OBJECTE
+//[ ] Bucle del juego
+// Calcular el nuevo estado (movimiento).
+// Actualizar las variables de estado.
+// Redibujar el canvas.
+const bucle = (evt) => {
+// Calcular el nuevo estado (movimiento).
+moviment(evt);
+// Actualizar las variables de estado.
+let serp;
+let poma;
+// Redibujar el canvas.
+
+}
 
 
 //[x] Funció per a crear la matriu interna
@@ -21,18 +34,13 @@ const crearCanvas = (volum = 10) => {
     }))
   );
 }
-
 //[ ] FUNCIONS DE MOVIEMNT DE LA SERP
 // entrada: l'esdeveniment i el canvas html
 // internament: sols toca el canvas intern
 // eixida: res
 // NOTE pot retornar una còpia així no modifica el paràmetre rebut
 const moviment = ({ event, serp, poma, volum }) => {
-  let cap = serp.filter((element) => element.pos === 1)[0];
-
-  if (!cap) finalitzarJoc();
-
-  let coordNoves;
+    let coordNoves;
 
   switch (event.key) {
     case "ArrowUp":
@@ -50,6 +58,10 @@ const moviment = ({ event, serp, poma, volum }) => {
     default:
       return;
   }
+
+  let cap = serp.filter((element) => element.pos === 1)[0];
+
+  if (!cap) finalitzarJoc();
 
   if (
     comprovarLimit({obj: coordNoves, volum }) ||
@@ -71,11 +83,12 @@ const moviment = ({ event, serp, poma, volum }) => {
   return { novaSerp, poma };
 }
 
-// [x] funció per a créixer la serp
+//[x] funció per a créixer la serp
 // entrada: objecte 1 (serp) i coordenades a augmentar
 // eixida: cópia de serp
-const creixerSerp = ({coordenades, serp }) => {
-  let serpAugmentada = structuredClone(serp);
+const creixerSerp = (serp) =>{
+    let serpAugmentada = structuredClone(serp);
+return (coordenades) => {
   serpAugmentada.forEach((part) => part.pos++);
   serpAugmentada.unshift({
     x: coordenades.x,
@@ -84,9 +97,10 @@ const creixerSerp = ({coordenades, serp }) => {
     pos: 1,
   });
   return serpAugmentada;
+} 
 };
 
-// [x] funció per a saber si estem en el límit
+//[x] funció per a saber si estem en el límit
 // entrada: objecte 1 (cap de la serp) i canvas intern
 // eixida: booleà
 // NOTE fer-ho dins del mètode de moviment amb una ternària?
@@ -96,7 +110,7 @@ const comprovarLimit = ({obj, volum }) => {
   return false;
 };
 
-// [x] funció per a saber si xoquem amb serp
+//[x] funció per a saber si xoquem amb serp
 // entrada: objecte 1 (cap de la serp) i coordenades noves
 // eixida: booleà
 const comprovarSerp = ({ coord, obj }) => {
@@ -146,7 +160,6 @@ console.log(novaPoma);
 
   return novaPoma;
 };
-
 
 //[x] Funció per a canviar l'estat/esborrar d'una casella
 // entrada: cooredenades de la casella i forma a canviar
