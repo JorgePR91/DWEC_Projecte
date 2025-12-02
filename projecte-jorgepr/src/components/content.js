@@ -1,74 +1,96 @@
-export { inici }
-import * as joc from "../game/logicaJoc.js";
+import { bucle, iniciJoc } from "../game/logicaJoc";
+import { interval, tap } from "rxjs";
 
 // TODO Decidir si separem la part lògica de la visual: esdeveniment personalitzat per a que carregue: un document per al container i altre per al joc i en el moment que la matriu del joc canvie li enviem l'esdeveniment personalitzat al carregar el canvas.
 // Saber què carregaria millor el navegador: canviar l'estil de les casselles o divs vs canviar la classe; canviar sols les casselles afectades o tot el tauler
-
 
 // [ ] FUNCIÓ D'INICI
 // entrada: volum de la matriu
 // internament: agafa un element del dom per a modificar
 // eixida: interval
+
 const inici = (volum) => {
+  const { $serp, $poma, $direccio, $estat, $punts, $joc } = iniciJoc(volum);
 
-  //POSSICIÓ INICIAL DE LA SERP
-  let posicioInicialX = Math.floor(volum / 2);
-  let posicioInicialY = Math.floor(volum / 2);
+    let canvas = document.querySelector("#gameCanvas");
+    let section = document.querySelector("#sectionGame");
 
-const serp = [{
-  x: posicioInicialX,
-  y: posicioInicialY,
-  estat: "serp",
-  pos: 1
- }];
- console.log(serp);
- /*
- ¿Cómo solucionarlo?
-Debes mantener el estado de serp y poma fuera de la función de evento, y actualizarlo tras cada movimiento.
-El intervalo debe ejecutarse de forma continua, y solo cambiar la dirección con la tecla, no reiniciar el intervalo.
-Tras cada movimiento, debes redibujar el canvas con el nuevo estado.
-Resumen:
-La serpiente no se mueve porque el estado no se actualiza correctamente y el renderizado no se produce tras cada movimiento. Además, el manejo del intervalo no es el adecuado para un juego de tipo Snake.
-1. Poner en orden y combinar métodos existentes
-Sí, es necesario. Tienes la mayoría de funciones necesarias, pero el flujo de datos y el renderizado no están bien conectados.
-Debes mantener el estado de la serpiente (serp), la manzana (poma) y la dirección actual en variables que sean accesibles por el bucle principal del juego.
-El bucle principal debe:
-Calcular el nuevo estado (movimiento).
-Actualizar las variables de estado.
-Redibujar el canvas.
-2. ¿Hace falta escribir algún método nuevo?
-No es estrictamente necesario escribir métodos nuevos, pero sí debes:
-Añadir una función de “bucle de juego” (game loop) que se ejecute cada X milisegundos y mueva la serpiente en la dirección actual.
-Añadir una función para actualizar el DOM tras cada movimiento.
-Añadir lógica para cambiar la dirección con las teclas, sin reiniciar el intervalo.
-3. ¿Un custom event lo solucionaría?
-No es imprescindible para un Snake sencillo, pero puede ser útil si quieres separar la lógica del juego de la visualización.
-Un custom event sería útil si quieres que la lógica del juego emita un evento cada vez que cambia el estado, y la vista (canvas) escuche ese evento para redibujar.
-Para tu caso, puedes solucionarlo simplemente organizando el flujo y el estado, sin necesidad de custom events.
-Enfoque recomendado (resumido):
-1. Variables globales (o de módulo) para serp, poma, direccion, interval.
-2. Al pulsar una tecla, solo cambias la dirección.
-3. El intervalo llama a una función que:
+  /* Suscripciones para la UI (mantén las referencias por separado)
+  const subscripcioUISerp = $serp.subscribe((serp) => {
+    [...document.querySelectorAll('.serp')].forEach(e => 
+      borrar({ x: parseInt(e.id.match(/x(\d+)/)[1]), y: parseInt(e.id.match(/y(\d+)/)[1]) }, "serp")
+    );
+    serp.forEach((pos) => pintar({ x: pos.x, y: pos.y }, "serp"));
+  });*/
+  let serpAntiga = [];
+  let pomaAntiga = [];
 
-Calcula el nuevo estado con moviment.
-Actualiza las variables.
-Redibuja el canvas.
-4. Solo reinicias el intervalo al iniciar o reiniciar el juego, no en cada tecla.
- */
-  let canvas = document.querySelector('#gameCanvas');
-  let poma = joc.afegirPoma({serp, volum});
-  canvas.replaceChildren(updateCanvas({canvas, serp, poma}))
-  let interval;
-
-  //MOVIMENT DE LA SERP
-  document.addEventListener("keydown", (event) => {
-    // clearInterval(interval);
-    interval = setInterval(() => joc.moviment({event, serp, poma, volum}), 200);
+  const serp = $serp.subscribe(serp =>{
+    actualitzarSerp({antic: serpAntiga, nou: serp, contenidor: canvas});
+    serpAntiga = structuredClone(serp);
+    if(serp.length === 0) {
+      $estat.next("finalitzat");
+      $serp.unsubscribe();
+    }
   });
 
+  const poma = $poma.subscribe((poma) =>{
+    if(pomaAntiga.length !== 0)
+borrar({coord: {x:poma.x, y: poma.y}, forma: "poma", contenidor: canvas});
+   else
+    pintar({coord: {x:poma.x, y: poma.y}, forma: "poma", contenidor: canvas});
+  });
 
-  return interval;
-}
+  $punts.subscribe(
+    e => section.querySelector("#puntuacio").value = e
+  );
+  const joc = $joc.subscribe();
+  const estat = $estat.subscribe(est => est === "finalitzat" && $estat.unsubscribe()
+);
+
+  
+  //MOVIMENT DE LA SERP
+  document.addEventListener("keydown", (event) => {
+    if(estat !== "jugant") $estat.next("jugant");
+    // clearInterval(interval);
+    switch (event.key) {
+      case "ArrowUp":
+        $direccio.next("dalt");
+        break;
+      case "ArrowRight":
+        $direccio.next("dreta");
+        break;
+      case "ArrowDown":
+        $direccio.next("baix");
+        break;
+      case "ArrowLeft":
+        $direccio.next("esquerra");
+        break;
+      case " ":
+        $estat.next("guardat");
+        break;
+      default:
+        return;
+    }
+});
+
+  const interval = bucle(
+    {
+      $serp,
+      $poma,
+      $direccio,
+      $estat,
+      $punts,
+      volum
+    }
+  );
+
+  return () => {
+    joc.unsubscribe();
+    serp.unsubscribe();
+    poma.unsubscribe();
+    $punts.unsubscribe();
+  };};
 
 //[x] Funció per a crear la matriu interna
 // entrada: la grandària
@@ -86,41 +108,52 @@ function crearCanvas(volum = 10) {
   );
 }
 
-
 // [ ] Funció per a renderitzar el contingut: botó amb canvas
 // entrada: volum del canvas
 // internament toca el document
 // eixida: element de secció
 export function renderContent(volum = 10) {
-
   const section = document.createElement("section");
-  section.setAttribute('id', 'sectionGame')
+  section.setAttribute("id", "sectionGame");
 
-    const div = document.createElement("div");
-  div.setAttribute('id', 'gameContainer');
-  div.classList.add('container');
-  div.classList.add('board-wrapper');
-    div.classList.add('mb-5');
+  const puntuacio = document.createElement("div");
+  puntuacio.setAttribute("id", "divPuntuacio");
+  const input = document.createElement("input");
+  input.setAttribute("id", "puntuacio");
+  input.setAttribute("name", "puntuacio");
+  const label = document.createElement("label");
+  puntuacio.append(label, input);
+
+  const div = document.createElement("div");
+  div.setAttribute("id", "gameContainer");
+  div.classList.add("container");
+  div.classList.add("board-wrapper");
+  div.classList.add("mb-5");
 
   div.appendChild(renderCanvas(volum));
 
-  section.appendChild(div);
+  section.append(puntuacio, div);
 
-    let button = document.createElement("button");
-    button.textContent = "Inici";
-    button.classList.add('btn');
-    button.classList.add('btn-primary');
-    section.append(button);
+  let button = document.createElement("button");
+  button.textContent = "Inici";
+  button.classList.add("btn");
+  button.classList.add("btn-primary");
+  section.append(button);
 
-    button.addEventListener("click", () => {
-      document.querySelector("#gameContainer").replaceChild(renderCanvas(volum), div.querySelector('#gameCanvas'));
-      inici(volum);
-    });
+  let bucle;
+
+  button.addEventListener("click", () => {
+    bucle&& bucle.unsubscribe();
+    document
+      .querySelector("#gameContainer")
+      .replaceChild(renderCanvas(volum), div.querySelector("#gameCanvas"));
+    bucle = inici(volum);
+  });
 
   return section;
 }
 
-//[ ] FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
+//[x] FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
 // entrada: volum de la matriu
 // internament: toca el document per a afegir coses i crear
 // eixida: element amb el canvas o div
@@ -137,54 +170,87 @@ export function renderCanvas(volum = 30) {
     contingut += `</div>`;
   }
 
-  const div = document.createElement('div');
-  div.setAttribute('id', 'gameCanvas');
-  div.classList.add('glow-effect');
-  div.classList.add('board');
+  const div = document.createElement("div");
+  div.setAttribute("id", "gameCanvas");
+  div.classList.add("glow-effect");
+  div.classList.add("board");
 
   div.innerHTML = contingut;
 
   return div;
 }
 
-//[ ] Funció per a canviar l'estat d'una casella
+//[x] Funció per a canviar l'estat d'una casella
 // entrada: cooredenades de la casella i forma a canviar
 // internament: agafa elements del document
 // eixida: casella
-function pintar(coord, forma) {
+function pintar({coord, forma, contenidor}) {
   let id = "x" + coord.x + "y" + coord.y;
-  let casella = document.getElementById(id);
+  let casella = contenidor.querySelector(`#${id}`);
+
+    if(casella){
 
   console.log("A pintar " + "#" + id + " forma: " + forma);
 
   casella.classList.add(forma);
   console.log(casella);
 }
+return contenidor;
 
-//[ ] Funció per a canviar l'estat/esborrar d'una casella
+}
+
+//[x] Funció per a canviar l'estat/esborrar d'una casella
 // entrada: cooredenades de la casella i forma a canviar
 // internament: agafa elements del document
 // eixida: res
-function borrar(coord, forma) {
+function borrar({coord, forma, contenidor}) {
   let id = "x" + coord.x + "y" + coord.y;
-  let casella = document.getElementById(id);
+  let casella = contenidor.querySelector(`#${id}`);
 
+  if(casella){
   console.log("A borrar " + "#" + id + " forma: " + forma);
 
   casella.classList.remove(forma);
 
   console.log(casella);
+  }
+return contenidor;
 }
 
-const updateCanvas = ({canvas, serp, poma}) => {
+const actualitzarSerp = ({antic, nou, contenidor}) =>{
   
+    if(!Array.isArray(nou) || nou.length === 0)
+      return;
+  console.log("entrar a pintar");
+
+    if(!Array.isArray(antic) || antic.length === 0){
+      console.log("serp inicial");
+
+      return nou.forEach(e => pintar({coord: {x: e.x, y: e.y}, forma: "serp", contenidor: contenidor}));
+    }
+
+
+    //Optimització IA: fer sets que són de recerca inmediata amb strings per sabes si estan o no
+    const nouSet = new Set(nou.map(e => `${e.x},${e.y}`));
+    const anticSet = new Set(antic.map(e => `${e.x},${e.y}`));
+
+    antic.forEach(e =>
+      !nouSet.has(`${e.x},${e.y}`) && borrar({coord: {x: e.x, y: e.y}, forma: "serp", contenidor: contenidor})
+    );
+    nou.forEach(e =>
+      !anticSet.has(`${e.x},${e.y}`) && pintar({coord: {x: e.x, y: e.y}, forma: "serp", contenidor: contenidor})
+    );
+  
+    return contenidor;
+};
+
+const updateCanvas = ({ canvas, serp, poma }) => {
   let nouCanvas = canvas.cloneNode(true);
-  let celdes = nouCanvas.querySelectorAll('.celda');
+  let celdes = nouCanvas.querySelectorAll(".celda");
 
-  celdes.forEach(element => element.className = "celda"
-  );
+  celdes.forEach((element) => (element.className = "celda"));
 
-  serp.forEach(element => {
+  serp.forEach((element) => {
     let id = "x" + element.x + "y" + element.y;
     nouCanvas.querySelector(`#${id}`).classList.add(element.estat);
   });
@@ -193,4 +259,4 @@ const updateCanvas = ({canvas, serp, poma}) => {
   nouCanvas.querySelector(`#${idPoma}`).classList.add(poma.estat);
 
   return nouCanvas;
-}
+};

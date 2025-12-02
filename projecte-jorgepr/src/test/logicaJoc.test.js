@@ -97,7 +97,7 @@ describe("Llògica del joc", function () {
   describe("Loop Joc - funció moviment", function () {
     test("La funció loopJoc és una closure", function () {
       let funcio = llogicaJoc.moviment();
-      expect(typeof funcio).toBe("funciton");
+      expect(typeof funcio).toBe("function");
     });
     test("La primera instància genera el tauler però sense moviment ni canvi", function () {
       //Accedir a l'element de dins de la closure
@@ -126,11 +126,11 @@ describe("Llògica del joc", function () {
     });
     test("La funció disminuir torna un array d'objectes amb els atributs de la serp", function () {
       let serpArray = llogicaJoc.disminuir(serp);
-      expect(serpArray.any(s => !s.pos || !s.x || !s.y)).toBeTruthy();
+      expect(serpArray.every(s => s.pos && s.x && s.y)).toBeTruthy();
     });
     test(
       "La funció disminuir torna un array d'objectes amb l'última possició diferent a la primera", function () {
-              let serpArray = llogicaJoc.disminuir(serp);
+        let serpArray = llogicaJoc.disminuir(serp);
         expect(serpArray.length).not.toEqual(serp.length);
         expect(llogicaJoc.disminuir(serp)).toBe([
         {
