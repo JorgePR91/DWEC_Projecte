@@ -1,28 +1,129 @@
-//FUNCIÓ D'INICI
-export function inici(volum) {
-  let canvas = crearCanvas(volum);
+import { bucle, iniciJoc } from "../game/logicaJoc";
+import { interval, tap } from "rxjs";
 
-  //POSSICIÓ INICIAL DE LA SERP
-  let posicioInicialX = Math.floor(canvas.length / 2);
-  let posicioInicialY = Math.floor(canvas.length / 2);
+// TODO Decidir si separem la part lògica de la visual: esdeveniment personalitzat per a que carregue: un document per al container i altre per al joc i en el moment que la matriu del joc canvie li enviem l'esdeveniment personalitzat al carregar el canvas.
+// Saber què carregaria millor el navegador: canviar l'estil de les casselles o divs vs canviar la classe; canviar sols les casselles afectades o tot el tauler
 
-  canvas[posicioInicialX][posicioInicialY].pos = 1;
-  canvas[posicioInicialX][posicioInicialY].estat = "serp";
-  pintar({ x: posicioInicialX, y: posicioInicialY }, "serp");
-  afegirPoma(canvas);
-  let interval;
+// [ ] FUNCIÓ D'INICI
+// entrada: volum de la matriu
+// internament: agafa un element del dom per a modificar
+// eixida: interval
+const inici = (volum) => {
+  const { $serp, $poma, $direccio, $estat, $punts, $joc } = iniciJoc(volum);
 
-  //MOVIMENT DE LA SERP
-  document.addEventListener("keydown", (event) => {
-    clearInterval(interval);
-    interval = setInterval(() => moviment(event, canvas), 200);
+  let canvas = document.querySelector("#gameCanvas");
+  let section = document.querySelector("#sectionGame");
+
+  /* Suscripciones para la UI (mantén las referencias por separado)
+  const subscripcioUISerp = $serp.subscribe((serp) => {
+    [...document.querySelectorAll('.serp')].forEach(e => 
+      borrar({ x: parseInt(e.id.match(/x(\d+)/)[1]), y: parseInt(e.id.match(/y(\d+)/)[1]) }, "serp")
+    );
+    serp.forEach((pos) => pintar({ x: pos.x, y: pos.y }, "serp"));
+  });*/
+  let serpAntiga = [];
+  let pomaAntiga = null;
+  //Control de les subscripcions complet
+  const subsJoc = [];
+
+  const subsSerp = $serp.subscribe((serp) => {
+    actualitzarSerp({ antic: serpAntiga, nou: serp, contenidor: canvas });
+    serpAntiga = structuredClone(serp);
+
+    // if (serp.length === 0) {
+    //   $estat.next("finalitzat");
+    //   subsSerp.unsubscribe();
+    // }
   });
+  subsJoc.push(subsSerp);
 
-  return interval;
+  const subsPoma = $poma.subscribe((poma) => {
+    if (pomaAntiga)
+      borrar({
+        coord: { x: pomaAntiga.x, y: pomaAntiga.y },
+        forma: "poma",
+        contenidor: canvas,
+      });
 
-  //EN UN LISTENER ELS PARÀMETRES QUE PODEM AGAFAR ENS ELS PASSA EL NAVEGADOR, PEL QUE SOLES POT PASSAR EVENT, NO CANVAS, JA QUE EL NAVEGADOR NO EL TÉ NI ÉS PART DELS SEUS RECURSOS
-}
+    pintar({
+      coord: { x: poma.x, y: poma.y },
+      forma: "poma",
+      contenidor: canvas,
+    });
+    pomaAntiga = structuredClone(poma);
+  });
+  subsJoc.push(subsPoma);
 
+  $punts.subscribe((e) => e >0  && (section.querySelector("#puntuacio").value = e));
+  
+  //const joc = $joc.subscribe();
+  const estat = $estat.subscribe(
+    (est) => est === "finalitzat" && estat.unsubscribe()
+  );
+
+  const subsBucle = bucle({
+    $serp,
+    $poma,
+    $direccio,
+    $estat,
+    $punts,
+    volum,
+  });
+subsJoc.push(subsBucle);
+
+  const subsEstat = $estat.subscribe(estat =>{
+    if (estat === "guardat"){
+      console.log('Partida guardada');
+            subsBucle.unsubscribe();
+    } else if(estat === "finalitzat") {
+      console.log('Finalitzar partida');
+            subsBucle.unsubscribe();
+    }
+  });
+  subsJoc.push(subsEstat);
+  //MOVIMENT DE LA SERP: en una constant per a poder eliminar l'esdeveniment 
+  const eventTecles = (event) => {
+    const estatAct = $estat.getValue();
+
+    if (estatAct === "parat") $estat.next("jugant");
+
+    switch (event.key) {
+      case "ArrowUp":
+        $direccio.next("dalt");
+        break;
+      case "ArrowRight":
+        $direccio.next("dreta");
+        break;
+      case "ArrowDown":
+        $direccio.next("baix");
+        break;
+      case "ArrowLeft":
+        $direccio.next("esquerra");
+        break;
+      case " ":
+        if (estatAct === "jugant")
+        $estat.next("guardat");
+      else if (estatAct === "guardat")
+        $estat.next("jugant");
+        break;
+      default:
+        return;
+    }
+  };
+
+  document.addEventListener("keydown", eventTecles);
+
+
+
+  return () => {
+    document.removeEventListener("keydown", eventTecles);
+    subsJoc.forEach(sub => sub.unsubscribe);
+  };
+};
+
+//[x] Funció per a crear la matriu interna
+// entrada: la grandària
+// eixida: la matriu
 function crearCanvas(volum = 10) {
   //El map sols opera amb elements existents, així que si no l'omplim no entra
 
@@ -36,151 +137,92 @@ function crearCanvas(volum = 10) {
   );
 }
 
-//FUNCIONS DE MOVIEMNT DE LA SERP
-function moviment(event, canvas) {
-  let cap;
-
-  for (let fila of canvas)
-    for (let element of fila) if (element.pos === 1) cap = element;
-  //console.log(`Cap: `);
-  //console.log(cap);
-
-  if (!cap) return;
-
-  let coordNoves;
-
-  switch (event.key) {
-    case "ArrowUp":
-      coordNoves = { x: cap.x, y: cap.y - 1 };
-      break;
-    case "ArrowRight":
-      coordNoves = { x: cap.x + 1, y: cap.y };
-      break;
-    case "ArrowDown":
-      coordNoves = { x: cap.x, y: cap.y + 1 };
-      break;
-    case "ArrowLeft":
-      coordNoves = { x: cap.x - 1, y: cap.y };
-      break;
-    default:
-      return;
-  }
-
-  if (
-    comprovarLimit(coordNoves, canvas) ||
-    canvas[coordNoves.x][coordNoves.y].estat === "serp"
-  ) {
-    disminuir(canvas);
-    //   for (let fila of canvas)
-    // for (let element of fila) if (element.pos > 1) element.pos--;
-  } else {
-    for (let fila of canvas)
-      for (let element of fila) if (element.pos > 0) element.pos++;
-    canvas[coordNoves.x][coordNoves.y].pos++;
-    pintar(coordNoves, "serp");
-
-    if (canvas[coordNoves.x][coordNoves.y].estat === "poma") {
-      afegirPoma(canvas);
-      canvas[coordNoves.x][coordNoves.y].estat = "serp";
-      canvas[coordNoves.x][coordNoves.y].estat === "serp";
-    } else {
-      canvas[coordNoves.x][coordNoves.y].estat = "serp";
-      disminuir(canvas);
-    }
-  }
-}
-
-function comprovarLimit(pos, canvas) {
-  if (pos.x >= canvas.length || pos.y >= canvas.length) return true;
-  if (pos.x < 0 || pos.y < 0) return true;
-  return false;
-}
-
-function disminuir(canvas) {
-  let cua = canvas
-    .flat()
-    .reduce((accumulador, actual) =>
-      actual.pos >= accumulador.pos ? actual : accumulador
-    );
-
-  //console.log("Cua:");
-  //console.log(cua);
-
-  cua.pos = 0;
-  cua.estat = null;
-  borrar(cua, "serp");
-}
-
-//FUNCIÓ DE AFEGIR ELEMENTS(SOLS 1 DE TIPUS)
-function afegirPoma(canvas) {
-  console.log("Afegint poma...");
-
-  //  let x = Math.floor(Math.random() * canvas.length);
-  //  let y = Math.floor(Math.random() * canvas.length);
-
-  let arrCasLliures = canvas.flat().filter((c) => c.estat === null);
-
-  if (arrCasLliures.length === 0) finalitzarJoc();
-
-  let novaPoma =
-    arrCasLliures[Math.floor(Math.random() * arrCasLliures.length)];
-
-  let poma;
-
-  for (let fila of canvas)
-    for (let element of fila) if (element.estat === "poma") poma = element;
-  console.log("poma");
-
-  console.log(poma);
-
-  if (poma) {
-    poma.estat = null;
-    borrar(poma, "poma");
-  }
-
-  // if (canvas[x][y].estat === null) {
-  //   canvas[x][y].estat = "poma";
-  //   pintar({ x: x, y: y }, "poma");
-  // } else if (canvas.flat().filter((e) => e.estat === null).length == 0) {
-  //   finalitzarJoc();
-  // } else {
-  //   afegirPoma(canvas);
-  // }
-
-  canvas[novaPoma.x][novaPoma.y].estat = "poma";
-  pintar(canvas[novaPoma.x][novaPoma.y], "poma");
-}
-
+// [ ] Funció per a renderitzar el contingut: botó amb canvas
+// entrada: volum del canvas
+// internament toca el document
+// eixida: element de secció
 export function renderContent(volum = 10) {
-
   const section = document.createElement("section");
-  section.setAttribute('id', 'sectionGame')
+  section.setAttribute("id", "sectionGame");
 
-    const div = document.createElement("div");
-  div.setAttribute('id', 'gameContainer');
-  div.classList.add('container');
-  div.classList.add('board-wrapper');
-    div.classList.add('mb-5');
+  const puntuacio = document.createElement("div");
+  puntuacio.setAttribute("id", "divPuntuacio");
+  puntuacio.classList.add("d-flex");
+  puntuacio.classList.add("align-items-center");
+  puntuacio.classList.add("justify-items-center");
+  puntuacio.classList.add("mb-4");
+  puntuacio.classList.add("fs-3");
+  puntuacio.classList.add("glow-text");
+  puntuacio.classList.add("mx-auto");
+
+
+  const input = document.createElement("input");
+  input.setAttribute("id", "puntuacio");
+  input.setAttribute("name", "puntuacio");
+  input.setAttribute('style', 'width: 3em !important;');
+  input.classList.add('form-control');
+  input.classList.add('d-inline-bloc');
+  input.classList.add('input-no-interactivo');
+  input.classList.add('bg-transparent');
+  input.classList.add('border-0');
+  input.classList.add('text-end');
+  //input.classList.add('m-3');
+  //input.classList.add('p-2');
+  input.classList.add('text-white');
+  input.classList.add("fs-3");
+  //input.classList.add("glow-text");
+
+  const label = document.createElement("label");
+  label.setAttribute('for', 'puntuacio');
+  label.classList.add('form-label');
+  label.classList.add('m-0');
+  label.textContent = 'Puntuació';
+
+  puntuacio.classList.add("align-content-center");
+  puntuacio.classList.add("justify-content-center");
+  //label.classList.add("align-items-center");
+  label.classList.add("justify-items-center");
+  input.classList.add("align-items-center");
+  input.classList.add("justify-items-center");
+
+    puntuacio.append(label, input);
+
+  const div = document.createElement("div");
+  div.setAttribute("id", "gameContainer");
+  div.classList.add("container");
+  div.classList.add("board-wrapper");
+  div.classList.add("rounded");
+  div.classList.add("mb-5");
 
   div.appendChild(renderCanvas(volum));
 
-  section.appendChild(div);
+  section.append(puntuacio, div);
 
-    let button = document.createElement("button");
-    button.textContent = "Inici";
-    button.classList.add('btn');
-    button.classList.add('btn-primary');
-    section.append(button);
+  let button = document.createElement("button");
+  button.textContent = "Inici";
+  button.classList.add("btn");
+  button.classList.add("btn-primary");
+  button.classList.add('text-black');
+  section.append(button);
 
-    button.addEventListener("click", () => {
-      document.querySelector("#gameContainer").replaceChild(renderCanvas(volum), div.querySelector('#gameCanvas'));
-      inici(volum);
-    });
+  let bucle = null;
+
+  button.addEventListener("click", () => {
+    if(bucle) bucle();
+  
+    document
+      .querySelector("#gameContainer")
+      .replaceChild(renderCanvas(volum), div.querySelector("#gameCanvas"));
+    bucle = inici(volum);
+  });
 
   return section;
 }
 
-//FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
+//[x] FUNCIÓ SOLES DE RENDERITZAT DE CANVAS(ARRAY)
+// entrada: volum de la matriu
+// internament: toca el document per a afegir coses i crear
+// eixida: element amb el canvas o div
 export function renderCanvas(volum = 30) {
   console.log("Render canvas...");
 
@@ -194,48 +236,105 @@ export function renderCanvas(volum = 30) {
     contingut += `</div>`;
   }
 
-  const div = document.createElement('div');
-  div.setAttribute('id', 'gameCanvas');
-  div.classList.add('glow-effect');
-  div.classList.add('board');
+  const div = document.createElement("div");
+  div.setAttribute("id", "gameCanvas");
+  div.classList.add("glow-effect");
+  div.classList.add("board");
 
   div.innerHTML = contingut;
 
   return div;
 }
 
-function pintar(coord, forma) {
+//[x] Funció per a canviar l'estat d'una casella
+// entrada: cooredenades de la casella i forma a canviar
+// internament: agafa elements del document
+// eixida: casella
+function pintar({ coord, forma, contenidor }) {
   let id = "x" + coord.x + "y" + coord.y;
-  let casella = document.getElementById(id);
+  let casella = contenidor.querySelector(`#${id}`);
 
-  console.log("A pintar " + "#" + id + " forma: " + forma);
+  if (casella) {
+    //console.log("A pintar " + "#" + id + " forma: " + forma);
 
-  casella.classList.add(forma);
-  console.log(casella);
+    casella.classList.add(forma);
+    //console.log(casella);
+  }
+  return contenidor;
 }
 
-function borrar(coord, forma) {
+//[x] Funció per a canviar l'estat/esborrar d'una casella
+// entrada: cooredenades de la casella i forma a canviar
+// internament: agafa elements del document
+// eixida: res
+function borrar({ coord, forma, contenidor }) {
   let id = "x" + coord.x + "y" + coord.y;
-  let casella = document.getElementById(id);
+  let casella = contenidor.querySelector(`#${id}`);
 
-  console.log("A borrar " + "#" + id + " forma: " + forma);
+  if (casella) {
+    //console.log("A borrar " + "#" + id + " forma: " + forma);
 
-  casella.classList.remove(forma);
+    casella.classList.remove(forma);
 
-  console.log(casella);
+    //console.log(casella);
+  }
+  return contenidor;
 }
 
-//FUNCIÓ DE FINALITZAR JOC
-function finalitzarJoc(st) {
-  clearInterval(st);
-  console.log("S'acabó");
-}
+const actualitzarSerp = ({ antic, nou, contenidor }) => {
+  if (!Array.isArray(nou) || nou.length === 0) return;
 
-//MÈTODE COMPROVACIÓ SERP
-/*for (let fila of canvas) {
-      for (let element of fila) {
-        if (element.estat === "serp") {
-          console.log(element);
-        }
-      }
-    }*/
+  if (!Array.isArray(antic) || antic.length === 0) {
+    console.log("serp inicial");
+
+    return nou.forEach((e) =>
+      pintar({
+        coord: { x: e.x, y: e.y },
+        forma: "serp",
+        contenidor: contenidor,
+      })
+    );
+  }
+
+  //Optimització IA: fer sets que són de recerca inmediata amb strings per sabes si estan o no
+  const nouSet = new Set(nou.map((e) => `${e.x},${e.y}`));
+  const anticSet = new Set(antic.map((e) => `${e.x},${e.y}`));
+
+  antic.forEach(
+    (e) =>
+      !nouSet.has(`${e.x},${e.y}`) &&
+      borrar({
+        coord: { x: e.x, y: e.y },
+        forma: "serp",
+        contenidor: contenidor,
+      })
+  );
+  nou.forEach(
+    (e) =>
+      !anticSet.has(`${e.x},${e.y}`) &&
+      pintar({
+        coord: { x: e.x, y: e.y },
+        forma: "serp",
+        contenidor: contenidor,
+      })
+  );
+
+  return contenidor;
+};
+
+const updateCanvas = ({ canvas, serp, poma }) => {
+  let nouCanvas = canvas.cloneNode(true);
+  let celdes = nouCanvas.querySelectorAll(".celda");
+
+  celdes.forEach((element) => (element.className = "celda"));
+
+  serp.forEach((element) => {
+    let id = "x" + element.x + "y" + element.y;
+    nouCanvas.querySelector(`#${id}`).classList.add(element.estat);
+  });
+
+  let idPoma = "x" + poma.x + "y" + poma.y;
+  nouCanvas.querySelector(`#${idPoma}`).classList.add(poma.estat);
+
+  return nouCanvas;
+};

@@ -69,7 +69,7 @@ function renderLogin() {
                 <p class="card-description">Introdueix les teues credencials per a jugar</p>
             </div>
             <div class="card-content">
-                <form class="d-flex flex-column gap-2" >
+                <form id="formDadesUsu" class="d-flex flex-column gap-2" >
                     <div class="mb-2">
                         <label class="label" for="email">Email</label>
                         <input 
@@ -107,24 +107,28 @@ function renderLogin() {
   section.innerHTML = codi;
 
    const btn = section.querySelector("#enviarBtn");
-   const form = section.getElementsByTagName("form")[0];
+   const form = section.querySelector("#formDadesUsu");
 
-   btn.addEventListener("click", (event) => {
-     event.preventDefault();
-     console.log("enviar");
-     actionLogin(form);
-    });
+  //  btn.addEventListener("click", (event) => {
+  //    event.preventDefault();
+  //    console.log("enviar");
+  //   if(actionLogin(form))
+  //       //const iniciSessio = new CostumEvent();
+  //   });
 
   return section;
 }
 
-
-async function actionLogin(form) {
+// Mètode de logetjar: 
+// entrada: formulari -> agafar les dades de login
+// eixida: resposta del servidor per a mostrar missatge d'èxit o error
+const actionLogin = async (form) => {
     const objecteSessio = {
       email: form.elements.email.value.trim().toLowerCase(),
       password: form.elements.password.value
     };
     const resposta = login(objecteSessio);
+
     // let response = await fetch(
     //   loginUrl,
     //   {
@@ -140,5 +144,5 @@ async function actionLogin(form) {
     // let data = await response.json();
     console.log("Resposta:")
     console.log(resposta);
-  
+    return resposta;
 }

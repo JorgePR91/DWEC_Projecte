@@ -5,7 +5,7 @@ import { renderRegister } from "./components/register";
 export { router };
 
 const routes = new Map([
-  ["#", renderContent],
+  ["#", ],
   ["#game", renderContent],
   ["#login", renderLogin],
   ["#register", renderRegister],

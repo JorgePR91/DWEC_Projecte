@@ -7,19 +7,28 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "vitest",
+    "testrun": "vitest run",
+    "webtest": "vitest --ui",
+    "coverage": "vitest run --coverage",
+    "webtest:basic": "vitest spec/basic_spec.test.js --ui",
+    "webtest:functional": "vitest spec/functional_spec.test.js --ui"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "eslint": "^9.36.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
+    "jsdom": "^27.2.0",
     "prettier": "3.6.2",
     "sass": "^1.93.2",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vitest": "^4.0.14"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.8"
+    "bootstrap": "^5.3.8",
+    "rxjs": "^7.8.2"
   }
 }
