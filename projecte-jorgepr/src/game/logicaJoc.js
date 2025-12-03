@@ -1,4 +1,13 @@
-export { iniciJoc, bucle, disminuir, creixerSerp, comprovarObj, comprovarLimit, afegirPoma, moviment };
+export {
+  iniciJoc,
+  bucle,
+  disminuir,
+  creixerSerp,
+  comprovarObj,
+  comprovarLimit,
+  afegirPoma,
+  moviment,
+};
 import { BehaviorSubject, map, combineLatest, interval } from "rxjs";
 // TODO Decidir si separem la part lògica de la visual: esdeveniment personalitzat per a que carregue: un document per al container i altre per al joc i en el moment que la matriu del joc canvie li enviem l'esdeveniment personalitzat al carregar el canvas.
 // Saber què carregaria millor el navegador: canviar l'estil de les casselles o divs vs canviar la classe; canviar sols les casselles afectades o tot el tauler
@@ -7,13 +16,14 @@ import { BehaviorSubject, map, combineLatest, interval } from "rxjs";
 //POMA ÉS UN OBJECTE
 
 const iniciJoc = (volum) => {
-
-  const $serp = new BehaviorSubject([{
-    x: Math.floor(volum / 2),
-    y: Math.floor(volum / 2),
-    estat: "serp",
-    pos: 1,
-  }]);
+  const $serp = new BehaviorSubject([
+    {
+      x: Math.floor(volum / 2),
+      y: Math.floor(volum / 2),
+      estat: "serp",
+      pos: 1,
+    },
+  ]);
 
   const $poma = new BehaviorSubject(
     afegirPoma({ serp: $serp.getValue(), volum: volum })
@@ -21,78 +31,114 @@ const iniciJoc = (volum) => {
 
   const $direccio = new BehaviorSubject("estatic");
 
-
   //parat, guardat, jugant
   const $estat = new BehaviorSubject("parat");
   const $punts = new BehaviorSubject(0);
 
-  const $joc = combineLatest([$serp, $poma, $direccio, $estat, $punts])
-    .pipe(
+  const $joc = combineLatest([$serp, $poma, $direccio, $estat, $punts]).pipe(
     map(([serp, poma, direccio, estat, punts]) => ({
       serp,
       poma,
       direccio,
       estat,
-      punts
+      punts,
     }))
   );
   //iniciar el bucle
-console.log("iniciat el joc");
+  console.log("iniciat el joc");
 
   return { $serp, $poma, $direccio, $estat, $punts, $joc };
 };
-
-
-
 
 //[ ] Bucle del juego
 // Calcular el nuevo estado (movimiento).
 // Actualizar las variables de estado.
 // Redibujar el canvas.
 
-const bucle = ({ $serp, $poma, $direccio, $punts, $estat, volum}) => {
+const bucle = ({ $serp, $poma, $direccio, $punts, $estat, volum }) => {
+  return interval(150).subscribe(() => {
+    /* 
+    .pipe(
+      takeWhile(() => $estat.getValue() !== "finalitzat") // ← Se detiene automáticamente
+    )
+    .subscribe(() => {
+*/
+    let estatAct = $estat.getValue();
+    //console.log(estatAct);
 
-  return interval(500).subscribe(() => {
-    let estatAct = structuredClone($estat.getValue());
-    if(estatAct !== "jugant") return;
-
-    let serpAct = structuredClone($serp.getValue());
-    let pomaAct = structuredClone($poma.getValue());
-    let direccioAct = structuredClone($direccio.getValue());
-    let puntsAct = structuredClone($punts.getValue());
-
-    let coordNoves = moviment(direccioAct)({x: serpAct[0].x, y: serpAct[0].y});
-
-    if(!coordNoves) return;
-
-    if(comprovarLimit({obj: coordNoves, volum})) {
-      if(!serpAct || serpAct.length === 0){
-        finalitzarJoc($estat)
-        return;
-      }
-      disminuir(serpAct); return
+    if (estatAct === "parat") {
+      return;
     }
-    if(comprovarObj({ coord: coordNoves, obj: serpAct })) {
-            if(!serpAct || serpAct.length === 0){
-        finalitzarJoc($estat)
+
+    if (estatAct !== "jugant") {
+      console.log("NO JUGANT");
+      return;
+    }
+
+    let serpAct = $serp.getValue();
+    let pomaAct = $poma.getValue();
+    let direccioAct = $direccio.getValue();
+    let puntsAct = $punts.getValue();
+    console.log(serpAct);
+
+    if (!serpAct || !Array.isArray(serpAct) || serpAct.length === 0) {
+    throw new Error("Serp no està inicialitzada correctament");
+    }
+
+    let coordNoves = moviment(direccioAct)({
+      x: serpAct[0].x,
+      y: serpAct[0].y,
+    });
+
+    if (!coordNoves) return;
+
+    if (comprovarLimit({ obj: coordNoves, volum })) {
+      serpAct = disminuir(serpAct);
+
+      if (!serpAct || serpAct.length === 0) {
+        console.log("Finalitzat per haver acabat amb la serp");
+        $estat.next("finalitzat");
         return;
       }
-      disminuir(serpAct); return}
-    if(comprovarObj({ coord: coordNoves, obj: [pomaAct] })) {
-      serpAct = creixerSerp(serpAct)(volum)(coordNoves); 
-      pomaAct = afegirPoma({serp: serpAct, estat: estatAct, volum});
+
+      $serp.next(serpAct);
+      puntsAct--;
+      $punts.next(puntsAct);
+      return;
+    }
+    //li llevem el cap perquè es meneja, la IA ha dit que açò pot donar pas a aleatorietats de lògica i com les coordenades ja les tenim, millor comparar amb el que en realitat pot xocar
+    if (comprovarObj({ coord: coordNoves, obj: serpAct.slice(1) })) {
+      console.log("Colisió interna");
+
+      serpAct = disminuir(serpAct);
+
+      if (!serpAct || serpAct.length === 0) {
+        $estat.next("finalitzat");
+        return;
+      }
+
+      $serp.next(serpAct);
+      puntsAct--;
+      $punts.next(puntsAct);
+      return;
+    }
+
+    if (comprovarObj({ coord: coordNoves, obj: [pomaAct] })) {
+      console.log("Poma menjada");
+
+      serpAct = creixerSerp(serpAct)(volum)(coordNoves);
+      pomaAct = afegirPoma({ serp: serpAct, estat: estatAct, volum });
       $poma.next(pomaAct);
       puntsAct++;
       $punts.next(puntsAct);
     } else {
-        serpAct = creixerSerp(serpAct)(volum)(coordNoves); 
-        serpAct.pop();
+      serpAct = creixerSerp(serpAct)(volum)(coordNoves);
+      serpAct.pop();
     }
 
     $serp.next(serpAct);
   });
 };
-
 
 //[x] Funció per a crear la matriu interna
 // entrada: la grandària
@@ -113,32 +159,32 @@ const crearCanvas = (volum = 10) => {
 // entrada: l'esdeveniment i el canvas html
 // internament: sols toca el canvas intern
 // eixida: res
-// NOTE pot retornar una còpia així no modifica el paràmetre rebut. 
-// NOTE si es vol impedir anar en contra d'ella, de dalt baix, per exemple i que no choque posem un comprovarObj abans d'enviar 
+// NOTE pot retornar una còpia així no modifica el paràmetre rebut.
+// NOTE si es vol impedir anar en contra d'ella, de dalt baix, per exemple i que no choque posem un comprovarObj abans d'enviar
 const moviment = (direccio) => {
   let coordNoves;
 
   return (element) => {
-      switch (direccio) {
-    case "dalt":
-      coordNoves = { x: element.x, y: element.y - 1 };
-      break;
-    case "dreta":
-      coordNoves = { x: element.x + 1, y: element.y };
-      break;
-    case "baix":
-      coordNoves = { x: element.x, y: element.y + 1 };
-      break;
-    case "esquerra":
-      coordNoves = { x: element.x - 1, y: element.y };
-      break;
-    default:
-      return;
-  }
-    return coordNoves;
-  }
-}
+    switch (direccio) {
+      case "dalt":
+        coordNoves = { x: element.x, y: element.y - 1 };
+        break;
+      case "dreta":
+        coordNoves = { x: element.x + 1, y: element.y };
+        break;
+      case "baix":
+        coordNoves = { x: element.x, y: element.y + 1 };
+        break;
+      case "esquerra":
+        coordNoves = { x: element.x - 1, y: element.y };
+        break;
 
+      default:
+        return;
+    }
+    return coordNoves;
+  };
+};
 
 // function sobrant() {
 //   let cap = serp.filter((element) => element.pos === 1)[0];
@@ -173,20 +219,18 @@ const creixerSerp = (serp) => {
   let serpAugmentada = structuredClone(serp);
 
   return (volum) => {
-      if (serpAugmentada.length === Math.sqrt(volum)) return finalitzarJoc("perdut");
-        return (coordenades) => {
-    serpAugmentada.forEach((part) => part.pos++);
-    serpAugmentada.unshift({
-      x: coordenades.x,
-      y: coordenades.y,
-      estat: "serp",
-      pos: 1,
-    });
-    return serpAugmentada;
+    if (serpAugmentada.length === Math.sqrt(volum)) return finalitzarJoc();
+    return (coordenades) => {
+      serpAugmentada.forEach((part) => part.pos++);
+      serpAugmentada.unshift({
+        x: coordenades.x,
+        y: coordenades.y,
+        estat: "serp",
+        pos: 1,
+      });
+      return serpAugmentada;
+    };
   };
-  }
-
-
 };
 
 //[x] funció per a saber si estem en el límit
@@ -203,20 +247,23 @@ const comprovarLimit = ({ obj, volum }) => {
 // entrada: objecte 1 (cap de la serp) i coordenades noves
 // eixida: booleà
 const comprovarObj = ({ coord, obj }) => {
-    const array = Array.isArray(obj) ? obj : [obj];
+  const array = Array.isArray(obj) ? obj : [obj];
 
-  return array.some((element) => 
-    element.x === coord.x && element.y === coord.y
+  return array.some(
+    (element) => element.x === coord.x && element.y === coord.y
   );
 };
 
 //[x] Funció per a disminuir la serp
 // entrada: Serp <Array<objecte(x,y,pos,estat)>>
 // eixida: NOU OBJECTE SERP
-// NOTE com a eixida una còpia del canvas? un array amb la nova serp -implicaria que cada vegada que disminuira es tinguera que col·locar novament en el canvas, tenint que fer un nou mètode.
+// NOTE else if (serp.some((s) => !s.pos || !s.x || !s.y)) fa que si algun valor de serp és 0 l'identifique com true en qualsevol dels anteriors casos, solució, mesurar per typeof (string per a pos i number per a x/y) o mesurar per estat undefined o null. DESICIÓ ELIMINAR COMPROVACIÓ
+// com a eixida una còpia del canvas? un array amb la nova serp -implicaria que cada vegada que disminuira es tinguera que col·locar novament en el canvas, tenint que fer un nou mètode.
 const disminuir = (serp) => {
-  if (!Array.isArray(serp)) return null;
-  else if (serp.some(s => !s.pos || !s.x || !s.y)) return null;
+  if (!Array.isArray(serp)) 
+    throw new Error("Serp no està inicialitzada correctament");
+  
+  console.log("DISMINUIR");
 
   const copiaSerp = structuredClone(serp);
   copiaSerp.pop();
@@ -227,8 +274,7 @@ const disminuir = (serp) => {
 //[x] Funció d'afegir poma
 // entrada: serp i poma
 // eixida: poma
-const afegirPoma = ({ serp, estat, volum }) => {
-
+const afegirPoma = ({ serp, volum }) => {
   if (!serp || !Array.isArray(serp)) {
     throw new Error("Serp no està inicialitzada correctament");
   }
@@ -247,7 +293,6 @@ const afegirPoma = ({ serp, estat, volum }) => {
   let pos = Math.floor(Math.random() * arrCasellesLliures.length);
 
   let novaPoma = structuredClone(arrCasellesLliures[pos]);
-  console.log(novaPoma);
 
   novaPoma.estat = "poma";
   return novaPoma;
