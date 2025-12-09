@@ -1,20 +1,25 @@
-import { renderContent } from "./components/content";
-import { renderLogin } from "./components/login";
-import { renderRegister } from "./components/register";
+// import { renderContent } from "./components/content";
+// import { renderLogin } from "./components/login";
+// import { renderRegister } from "./components/register";
 
 export { router };
 
 const routes = new Map([
+  // ["#", ],
+  // ["#game", renderContent],
+  // ["#login", renderLogin],
+  // ["#register", renderRegister],
   ["#", ],
-  ["#game", renderContent],
-  ["#login", renderLogin],
-  ["#register", renderRegister],
+  ["#game", "app-joc"],
+  ["#login", 'app-login'],
+  ["#register", 'app-profile']
 ]);
 
 //SI
 async function router(route, container) {
   if (routes.has(route)) {
-      container.replaceChildren(routes.get(route)());
+      //container.replaceChildren(routes.get(route)());
+        container.replaceChildren(document.createElement(routes.get(route)));
   } else {
     container.innerHTML = `
     <div className="flex min-h-screen items-center justify-center">

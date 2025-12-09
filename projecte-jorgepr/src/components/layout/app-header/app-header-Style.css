@@ -1,0 +1,80 @@
+:host {
+  backdrop-filter: blur(12px);
+}
+nav {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+}
+
+div.left {
+  display: flex;
+  align-items: center;
+  gap: 2;
+}
+div.right {
+  display: flex;
+  align-items: center;
+  gap: 0.75;
+}
+.divEnllaç {
+  display: flex;
+  gap: 2;
+  margin-left: 1rem;
+}
+a.enllaç {
+  display: inline-block;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  color: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: hsl(180, 100%, 95%);
+  transition: all 0.2s;
+}
+.enllaç:hover {
+  text-shadow:
+    0 0 5px hsla(180, 100%, 50%, 0.5),
+    0 0 10px hsla(180, 100%, 50%, 0.3);
+}
+a.titol {
+  font-weight: 700;
+  color: hsl(180, 100%, 95%);
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+.glow-effect {
+  box-shadow:
+    0 0 20px hsla(180, 100%, 50%, 0.3),
+    0 0 40px hsla(180, 100%, 50%, 0.1);
+}
+.glow-text {
+  text-shadow:
+    0 0 10px hsla(180, 100%, 50%, 0.5),
+    0 0 20px hsla(180, 100%, 50%, 0.3);
+}
+.username {
+  color: hsl(180, 100%, 95%);
+  font-weight: 700;
+  margin: 0.5rem;
+}
+.avatar {
+  width: 25px;
+  border: 1px solid hsla(180, 100%, 50%, 0.5);
+  background: hsla(180, 100%, 50%, 0.2);
+  color: hsl(180, 100%, 50%);
+  display: grid;
+  grid-template-columns: 1fr;
+  border-radius: 50%;
+}
+img {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  width: 100%;
+  border-radius: 50%;
+}

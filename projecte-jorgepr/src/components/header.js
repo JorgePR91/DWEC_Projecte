@@ -24,3 +24,25 @@ function renderHeader(){
 //¿ ? Per a calvar la imatge i el nom d'usuari ho fem amb un esdeveniment creat o agafant-ho de localStorage
 
   }
+
+  class MiBoton extends HTMLElement {
+  constructor() {
+    super(); // OBLIGATORIO: inicializa la clase padre HTMLElement
+    
+    // Aquí SOLO inicialización de propiedades
+    this._contador = 0;
+    this._disabled = false;
+    
+    // 鉂?NO hacer esto aquí:
+    // this.innerHTML = '...'; // El elemento aún no está en el DOM
+    // this.addEventListener(...); // Puede no funcionar correctamente
+  }
+  
+  connectedCallback() {
+    // Aquí SÍ puedes manipular el DOM
+    this.render();
+    this.attachEventListeners();
+  }
+}
+
+customElements.define('mi-boton', MiBoton);

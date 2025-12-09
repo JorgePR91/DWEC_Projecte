@@ -3,7 +3,6 @@ export { renderRegister };
 import { singIN, updateUser, getProfile } from "../services/backendapiservice";
 
 async function renderRegister() {
-
   const codi = `
     <div class="card bg-dark text-light border-secondary glow-effect p-4">
             <div class="card-header">
@@ -94,32 +93,18 @@ async function renderRegister() {
     }
   });
 
-
-
-  if(localStorage.getItem("expires_in") > 0){
- const profile = getProfile(localStorage.getItem("user_id"), localStorage.getItem("access_token"));
- redimensioPutImg(section.querySelector("#imgCanva"), profile.avatar_blob);
-   
-  } 
-
+  if (localStorage.getItem("expires_in") > 0) {
+    const profile = getProfile(
+      localStorage.getItem("user_id"),
+      localStorage.getItem("access_token")
+    );
+    redimensioPutImg(section.querySelector("#imgCanva"), profile.avatar_blob);
+  }
 
   return section;
 }
 
 // Mètode per a redimensionar la imatge clavant-a en el canvas
-const redimensioPutImg = (canvas, imatge) => {
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.height,canvas.width);
-    const proporcio = Math.min(canvas.width / imatge.width, canvas.height / imatge.height);
-    const ample = imatge.width*proporcio;
-    const alt = imatge.height*proporcio;
-    const posX = (canvas.width-ample)/2;
-    const posY = (canvas.height-alt)/2;
-    ctx.drawImage(imatge, posX, posY, ample, alt);
-    
-    return canvas;
-}
 
 // Mètode de registre/actualització
 const accioRegistre = async (form) => {
@@ -147,15 +132,52 @@ const accioRegistre = async (form) => {
     const error = "Error amb el registre";
     console.log(error);
   }
+};
+const carregarImatge = (imgFile) => {
+  //Agafem el canvas i el context, com en el jdlv
+  const canvas = this.shadowRoot.getElementById("imgCanva");
+  const ctx = canvas.getContext("2d");
+  //El netegem
+  ctx.clearRect(0, 0, canvas.height, canvas.width);
 
-  //   let response = await fetch(singUpUrl, {
-  //     method: "post",
-  //     headers: {
-  //       apiKey: APIKEY_anon_public,
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify(objecteSessio),
-  //   });
+  //Definim la grandària perquè en el css soles es defineis la visual
+  canvas.width = 100;
+  canvas.height = 100;
+  //PReparem l'objecte que llegirà el document de la imatge
+  const reader = new FileReader();
+  //Clavem una funció per a que quan es carregue el fitxer faça un objecte imatge preparat per a ser dibuixat
+  reader.onload = (e) => {
+    const img = new Image();
+    //quan la imatge estiga carregada (buida encara) la dibuixem al canvas amb les dimensions i posicions
+    img.onload = () => {
+      //Proporcionem quadrada(IA)
+      const minSize = Math.min(img.width, img.height);
+      const startX = (img.width - minSize) / 2;
+      const startY = (img.height - minSize) / 2;
 
-  //   let data = await response.json();
+      // Dibuixem al canvas
+      ctx.drawImage(img, startX, startY, minSize, minSize, 0, 0, 100, 100);
+    };
+    //Ara bé l'acció, agafem el target de l'esdeveniment de càrrega de fitxer, que té la imatge en Data URL, i li la clavem al objecte imatge, el qual comença a fer els passos per a redimensionar-la i clavar-la al canvas.
+    img.src = e.target.result;
+  };
+  //I ara comença a llegir el fitxer. Es fa tot al revés, primer ho preparem tot i després ho apliquem, i això és perquè són accions pesades que poden ralentitzar el procediment, per tant, sols actuem quan tot està preparat (ja que és tot asíncrone)
+  reader.readAsDataURL(imgFile);
+};
+const exportarImatge = (img) => {
+  //const avatar = await this.obtenerAvatarParaEnviar();
+  //this.obtenerAvatarParaEnviar().then(avatar => {
+  //     console.log(avatar);
+  // });
+  const canvas = this.shadowRoot.getElementById("imgCanva");
+  //mètode asíncrone per a convertir el contingut del canvas a blob
+  return new Promise(resolve => {
+    canvas.toBlob(
+      blob => {
+        resolve(blob);
+      },
+      "image/jpeg",
+      1
+    );
+  });
 };
