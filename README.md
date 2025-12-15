@@ -1,5 +1,5 @@
-# DWEC_Projecte
-
+# DWEC_Projecte -- 🎮 IOGame 🎲 SNAKE 🐍
+  
 📘 Projecte del mòdul **Desenvolupament Web en Entorn Client (DWEC)** del Cicle Formatiu de Grau Superior en Desenvolupament d’Aplicacions Web.
 
 Aquest repositori conté una **aplicació web desenvolupada en l’entorn client**, fent ús de **JavaScript Vnilla**, **HTML5**, **CSS3** i amb les eines de **Node.js**, **RxJS** i **Vite** per a la gestió de dependències i el desplegament.
@@ -113,3 +113,7 @@ En cas d’utilitzar APIs o serveis externs, la comunicació es realitza mitjan�
 5. Executar el projecte:
    ```bash
    npm start
+
+
+©️ Autoria: Jorge Perigüell Rubio
+Desembre 2025
