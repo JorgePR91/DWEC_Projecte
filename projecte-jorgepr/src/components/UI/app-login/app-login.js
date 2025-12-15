@@ -32,10 +32,13 @@ class AppLogin extends HTMLElement {
       try {
         const res = await this.actionLogin(objForm);
 
-        console.log(res);
 
+        const customEvent = new CustomEvent('usuari-log', {
+          detail: {user: res.user.user}
+        })
+        window.dispatchEvent(customEvent);
         // Redirigir a la página principal tras login exitoso
-        window.location.hash = "#game";
+        window.location.hash = "#tamany";
       } catch (e) {
         console.log("error peticio");
 
@@ -128,14 +131,15 @@ class AppLogin extends HTMLElement {
     }
   }*/
 
-      errorAPI(error) {
-    console.log(`Export API ${error}`);
+    errorAPI(error) {
+    console.log(`Error API`);
     console.log(error);
     
     //De vegades enviem error com a missatge, de vegades enviem error com a objecte error.
-    const errorMessage = error.message || error;
+    const errorMessage = error.msg;
+    console.log(errorMessage);
     
-    if (errorMessage.includes("Login invalido") || errorMessage.includes("UNAUTHORIZED")) {
+    if (errorMessage.includes("Login invàlid") || errorMessage.includes("Invalid login")) {     
       this.errorGeneral("Credencials errònies.");
     } else {
       this.errorGeneral("Error al iniciar sessió. Torna-ho a intentar.");
@@ -156,6 +160,7 @@ class AppLogin extends HTMLElement {
             <div class="card-header">
                 <h3 class="card-title glow-text fw-bold">Benvingut de nou!</h3>
                 <p class="card-description">Introdueix les teues credencials per a jugar</p>
+                <div id="error-general" class="error d-none text-danger"></div>
             </div>
             <div class="card-content">
                 <form id="form-login" class="d-flex flex-column gap-2" >
@@ -169,6 +174,7 @@ class AppLogin extends HTMLElement {
                             placeholder="player@iogame.com"
                             required
                         />
+                        <span id="error-email" class="error-message d-none text-danger"></span>
                     </div>
                     <div class="form-group mb-4">
                         <label class="label" for="password">Password</label>
@@ -180,6 +186,7 @@ class AppLogin extends HTMLElement {
                             placeholder="••••••••"
                             required
                         />
+                         <span id="error-password" class="error-message d-none text-danger"></span>
                     </div>
                     <button type="submit" id="enviarBtn" class="button btn btn-primary w-100 fw-bold">Login</button>
                     <p class="text-center">

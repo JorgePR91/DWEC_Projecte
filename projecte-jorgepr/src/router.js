@@ -3,7 +3,7 @@ export { router };
 const routes = new Map([
   ["", "app-login"],
   ["#", "app-login"],
-  ["#game", "app-game"],
+  ["#game", "app-eleccio-btn"],
   ["#login", "app-login"],
   ["#register", "app-profile"],
   ["#profile", "app-profile"],
@@ -11,11 +11,7 @@ const routes = new Map([
   ["#tamany", "app-eleccio-btn"],
 ]);
 
-/**
- * Extrae la ruta base y los parámetros de URL
- * @param {string} hash - El hash de la URL (ej: "#game?volum=15")
- * @returns {Object} - { route: string, params: URLSearchParams }
- */
+
 function parseRoute(hash) {
   const [route, queryString] = hash.split("?");
   const params = new URLSearchParams(queryString || "");
@@ -28,10 +24,12 @@ async function router(hash, container) {
 const protegides =   ["#game", "#profile", "#partides", "#partides"];
 
 const autenticacio = () => {
-  let userId = localStorage.getItem('user_accesstoken') || null;
+  let userId = localStorage.getItem('access_token') || null;
   let user = localStorage.getItem('user') || null;
+  
   return user && userId;
 }
+
 
   if (routes.has(route)) {
 if (protegides.includes(route) && !autenticacio()) {
@@ -40,7 +38,7 @@ if (protegides.includes(route) && !autenticacio()) {
 }
 
     const componentName = routes.get(route);
-    const element = document.createElement(componentName);
+    let element = document.createElement(componentName);
 
     // Configurar atributos según la ruta
     if (route === "#register") {
@@ -50,6 +48,11 @@ if (protegides.includes(route) && !autenticacio()) {
       element.setAttribute("titol", "Perfil");
       element.setAttribute("subtitol", "Modifica el teu perfil");
     } else if (route === "#game") {
+      if(params.has('volum') || params.has('partida_id')) {
+        element.remove();
+        element = document.createElement('app-game');
+        params.has('volum') && element.setAttribute('volum', params.get('volum'))
+      } else 
       window.location.hash = '#tamany';
     } else if (route === "#tamany") {
       element.setAttribute("titol", "Tria la mida del tauler");

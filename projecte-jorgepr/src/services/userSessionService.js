@@ -68,7 +68,16 @@ export const tancarSessio = () => {
     URL.revokeObjectURL(avatar);
   }
 
-  $usuari.complete();
+  $usuari.next({
+  access_token: "",
+  refresh_token: "",
+  expires_in: "",
+  user_email: "",
+  user_id: "",
+  user: "",
+  user_avatar: "",
+  user_games: [],
+});
 };
 
 const sincronitzacioLocalStorage = (user) => {

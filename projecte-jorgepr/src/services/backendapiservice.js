@@ -17,10 +17,10 @@ export {
   eliminarPartida,
   logout,
 };
-//import * from './userSessionService.js';
 import {
   actualitzarUsuari,
   actualitzarAtributUsuari,
+  getUsuariValue,
 } from "./userSessionService";
 
 //BehaviourSubject per a l'usuari, idea de JCastillo, supose que l'elecció de BS respon a la necessitat d'escoltar i enviar l'usuari, així estar preparat per a canvis amb les peticions al servidor. OneMoreCopyPaste
@@ -107,7 +107,7 @@ export const getProfile = async ({
   let profile = await sendSupabase(
     `${supaUrl}/rest/v1/profiles?id=eq.${id}&select=*`,
     peticioGet({
-      headerData: { Authorization: token },
+      headerData: { Authorization: `Bearer ${token}` },
     })
   );
   if (!profile.length) return null;
@@ -122,7 +122,7 @@ export const getProfile = async ({
     try {
       let imageData = await sendSupabase(
         `${supaUrl}/storage/v1/object/${urlImg}`,
-        peticioGet({ Authorization: token })
+        peticioGet({ headerData: { Authorization: `Bearer ${token}` } })
       );
       if (imageData instanceof Blob)
         profile[0].avatar_blob = URL.createObjectURL(imageData);
@@ -194,10 +194,26 @@ const logout = () => {
   if (avatarUrl && avatarUrl.startsWith("blob:")) {
     URL.revokeObjectURL(avatarUrl);
   }
-
+  const usuariActual = getUsuariValue();
+  if (
+    usuariActual.user_avatar &&
+    usuariActual.user_avatar.startsWith("blob:")
+  ) {
+    URL.revokeObjectURL(usuariActual.user_avatar);
+  }
   // Netejar localStorage
   localStorage.clear();
 
+  actualitzarUsuari({
+    access_token: "",
+    refresh_token: "",
+    expires_in: "",
+    user_email: "",
+    user_id: "",
+    user: "",
+    user_avatar: "",
+    user_games: [],
+  });
   // Redirigir a login
   window.location.hash = "#login";
 };
@@ -217,23 +233,38 @@ const registrarSe = async (dadesUsuari) => {
 };
 
 const actualitzar = async ({ id, dadesUsuari }) => {
+  let avatar = null;
   if (dadesUsuari.avatar) {
-    const resultatImg = await updateImg(id, dadesUsuari);
+
+    const resultatImg = await updateImg({ id, dadesUsuari });
+
     if (resultatImg.error) {
       console.log(resultatImg.error);
+    } else {
+      avatar = resultatImg.Key;
+      // Actualitzar avatar_url a la base de dades
+      dadesUsuari.avatar_url = avatar;
     }
   }
+
+  // Eliminar el blob abans d'enviar a la base de dades
+  delete dadesUsuari.avatar;
+
   const resultatPerfil = await updateUser({ id, dadesUsuari });
 
   if (resultatPerfil.error) {
+
     throw resultatPerfil;
   }
 
   if (dadesUsuari.username) {
+
     actualitzarAtributUsuari({ atribut: "user", value: dadesUsuari.username });
   }
-  if (dadesUsuari.avatar) {
-    const nouAvatar = await getImage(dadesUsuari.avatar_url);
+  if (avatar) {
+
+    const nouAvatar = await getImage(avatar);
+
     actualitzarAtributUsuari({
       atribut: "user_avatar",
       value: nouAvatar,
@@ -244,21 +275,25 @@ const actualitzar = async ({ id, dadesUsuari }) => {
 };
 
 const updateUser = async ({ id, dadesUsuari }) => {
-  const headers = crearHeader();
-  headers.append("Prefer", "return=representation");
+  const token = localStorage.getItem("access_token");
   const resultat = await sendSupabase(
     `${supaUrl}/rest/v1/profiles?id=eq.${id}`,
-    peticioPatch({ headerData: headers, body: dadesUsuari })
+    peticioPatch({ 
+      headerData: { 
+        Authorization: `Bearer ${token}`,
+        Prefer: "return=representation"
+      }, 
+      body: dadesUsuari 
+    })
   );
 
   return resultat;
 };
 
+
 // [x] Mètode per a actualitzar Imatge
 //dadesUsuari.avatar!!!!!!!!!!!!!!!!!!!!!!!!
 const updateImg = async ({ id, dadesUsuari }) => {
-  console.log(dadesUsuari);
-
   const avatarBlob = dadesUsuari.avatar;
   const avatarName = `avatar_${id}.jpg`;
 
@@ -269,10 +304,12 @@ const updateImg = async ({ id, dadesUsuari }) => {
   headers.append("x-upsert", true);
   const resultat = await sendSupabase(
     `${supaUrl}/storage/v1/object/avatars/${avatarName}`,
-    peticioPost({ headerData: headers, body: formImg })
+    {
+      method: "POST",
+      headers: headers,
+      body: formImg,
+    }
   );
-  dadesUsuari.avatar_url = resultat.Key;
-  delete dadesUsuari.avatar;
 
   return resultat;
 };
@@ -298,18 +335,6 @@ const getImage = async (fileUrl) => {
   }
 };
 
-/**
- * Guarda una partida en la base de datos
- * Si ya existe una partida activa del usuario, la sobrescribe
- * @param {Object} dadesPartida - Datos de la partida a guardar
- * @param {Array} dadesPartida.serp - Array con las posiciones de la serpiente
- * @param {Object} dadesPartida.poma - Objeto con la posición de la manzana {x, y, estat}
- * @param {string} dadesPartida.direccio - Dirección actual de la serpiente
- * @param {number} dadesPartida.punts - Puntuación actual
- * @param {number} dadesPartida.volum - Tamaño del tablero
- * @param {string} dadesPartida.user_id - ID del usuario (opcional, se obtiene del localStorage)
- * @returns {Promise<Object>} Resultado de la inserción o actualización
- */
 const guardarPartida = async (dadesPartida) => {
   const userId = dadesPartida.user_id || localStorage.getItem("user_id");
   const token = localStorage.getItem("access_token");
@@ -318,7 +343,6 @@ const guardarPartida = async (dadesPartida) => {
     throw new Error("No hi ha sessió d'usuari activa");
   }
 
-  // Preparar los datos para insertar/actualizar en Supabase
   const partidaData = {
     user_id: userId,
     serp: dadesPartida.serp,
@@ -330,40 +354,37 @@ const guardarPartida = async (dadesPartida) => {
   };
 
   try {
-    // Primero comprobamos si ya existe una partida activa
     const partidesExistents = await sendSupabase(
       `${supaUrl}/rest/v1/partides?user_id=eq.${userId}&volum=eq.${dadesPartida.volum}&select=id`,
       peticioGet({
-        headerData: { Authorization: `Bearer ${token}` }
+        headerData: { Authorization: `Bearer ${token}` },
       })
     );
 
     let resultat;
 
     if (partidesExistents && partidesExistents.length > 0) {
-      // Actualizar partida existente
       const partidaId = partidesExistents[0].id;
       resultat = await sendSupabase(
         `${supaUrl}/rest/v1/partides?id=eq.${partidaId}`,
         peticioPatch({
           headerData: {
             Authorization: `Bearer ${token}`,
-            Prefer: "return=representation"
+            Prefer: "return=representation",
           },
-          body: partidaData
+          body: partidaData,
         })
       );
       console.log("Partida actualitzada amb èxit:", resultat);
     } else {
-      // Insertar nueva partida
       resultat = await sendSupabase(
         `${supaUrl}/rest/v1/partides`,
         peticioPost({
           headerData: {
             Authorization: `Bearer ${token}`,
-            Prefer: "return=representation"
+            Prefer: "return=representation",
           },
-          body: partidaData
+          body: partidaData,
         })
       );
       console.log("Partida nova guardada amb èxit:", resultat);
@@ -376,11 +397,6 @@ const guardarPartida = async (dadesPartida) => {
   }
 };
 
-/**
- * Obtiene las partidas guardadas del usuario logueado
- * @param {string} userId - ID del usuario (opcional, se obtiene del localStorage)
- * @returns {Promise<Array>} Array con las partidas del usuario
- */
 const obtenirPartides = async (userId = null) => {
   const user_id = userId || localStorage.getItem("user_id");
   const token = localStorage.getItem("access_token");
@@ -393,7 +409,7 @@ const obtenirPartides = async (userId = null) => {
     const resultat = await sendSupabase(
       `${supaUrl}/rest/v1/partides?user_id=eq.${user_id}&select=id,punts,volum,direccio,data_guardat&order=data_guardat.desc`,
       peticioGet({
-        headerData: { Authorization: `Bearer ${token}` }
+        headerData: { Authorization: `Bearer ${token}` },
       })
     );
 
@@ -404,11 +420,6 @@ const obtenirPartides = async (userId = null) => {
   }
 };
 
-/**
- * Obtiene una partida específica con todos sus datos
- * @param {number} partidaId - ID de la partida
- * @returns {Promise<Object>} Datos completos de la partida
- */
 const obtenirPartida = async (partidaId) => {
   const token = localStorage.getItem("access_token");
 
@@ -420,7 +431,7 @@ const obtenirPartida = async (partidaId) => {
     const resultat = await sendSupabase(
       `${supaUrl}/rest/v1/partides?id=eq.${partidaId}&select=*`,
       peticioGet({
-        headerData: { Authorization: `Bearer ${token}` }
+        headerData: { Authorization: `Bearer ${token}` },
       })
     );
 
@@ -435,11 +446,6 @@ const obtenirPartida = async (partidaId) => {
   }
 };
 
-/**
- * Elimina una partida de la base de datos
- * @param {number} partidaId - ID de la partida a eliminar
- * @returns {Promise<void>}
- */
 const eliminarPartida = async (partidaId) => {
   const token = localStorage.getItem("access_token");
 
@@ -448,13 +454,10 @@ const eliminarPartida = async (partidaId) => {
   }
 
   try {
-    await sendSupabase(
-      `${supaUrl}/rest/v1/partides?id=eq.${partidaId}`,
-      {
-        method: "DELETE",
-        headers: crearHeader({ Authorization: `Bearer ${token}` })
-      }
-    );
+    await sendSupabase(`${supaUrl}/rest/v1/partides?id=eq.${partidaId}`, {
+      method: "DELETE",
+      headers: crearHeader({ Authorization: `Bearer ${token}` }),
+    });
 
     console.log("Partida eliminada amb èxit");
   } catch (error) {
@@ -462,8 +465,3 @@ const eliminarPartida = async (partidaId) => {
     throw error;
   }
 };
-
-/* COMENT Separación clara de capas:
-    fetchSupabase: Capa de infraestructura (HTTP)
-    loginSupabase/registerSupabase: Capa de servicios API
-    login/register: Capa de aplicación/lógica de negocio */

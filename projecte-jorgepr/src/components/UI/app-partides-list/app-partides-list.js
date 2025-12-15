@@ -104,9 +104,9 @@ class AppPartidesList extends HTMLElement {
                   ${this._partides.map(partida => `
                     <tr>
                       <td>${partida.volum}x${partida.volum}</td>
-                      <td><span class="badge bg-primary">${partida.punts}</span></td>
+                      <td><span class="badge btn-punts">${partida.punts}</span></td>
                       <td>${this.getDireccioIcon(partida.direccio)}</td>
-                      <td class="small text-muted">${this.formatarData(partida.data_guardat)}</td>
+                      <td class="small">${this.formatarData(partida.data_guardat)}</td>
                       <td class="text-center">
                         <button
                           class="btn btn-sm btn-success me-2 btn-carregar"
@@ -144,6 +144,11 @@ class AppPartidesList extends HTMLElement {
     // Afegir estils adicionals per a la taula
     const styleExtra = document.createElement("style");
     styleExtra.textContent = `
+      .btn-punts{
+      border: 1px solid hsla(180, 100%, 50%, 0.5);
+  background: hsla(180, 100%, 50%, 0.2);
+  color: hsl(180, 100%, 95%);
+      }
       .table {
         color: hsl(180, 100%, 95%);
       }

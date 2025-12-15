@@ -34,7 +34,7 @@ class AppGame extends HTMLElement {
       }
     }
 
-    this._init();
+    this.init();
   }
 
   disconnectedCallback() {
@@ -50,7 +50,7 @@ class AppGame extends HTMLElement {
     }
   }
 
-  _init() {
+  init() {
     this._volum = parseInt(this.getAttribute("volum")) || 10;
 
     const link = document.createElement("link");
@@ -152,6 +152,8 @@ class AppGame extends HTMLElement {
     const div = document.createElement("div");
     div.setAttribute("id", "gameCanvas");
     div.classList.add("glow-effect", "board");
+    div.style.setProperty('--varVolum', volum);
+
 
     div.innerHTML = contingut;
     return div;
@@ -216,7 +218,7 @@ class AppGame extends HTMLElement {
     this.detachEventListeners();
 
     this.shadowRoot.innerHTML = "";
-    this._init();
+    this.init();
   }
 
   inici(volum) {
@@ -294,7 +296,6 @@ class AppGame extends HTMLElement {
     if (!Array.isArray(serp))
       throw new Error("Serp no està inicialitzada correctament");
 
-    console.log("DISMINUIR");
 
     const copiaSerp = structuredClone(serp);
     copiaSerp.pop();
@@ -392,7 +393,7 @@ class AppGame extends HTMLElement {
         console.log("Colisió interna");
 
         serpAct = this.disminuir(serpAct);
-
+        
         if (!serpAct || serpAct.length === 0) {
           this.finalitzarJoc($estat);
           return;

@@ -1,4 +1,4 @@
-class AppBoardSize extends HTMLElement {
+class AppEleccioBtn extends HTMLElement {
   static get observedAttributes() {
     return ["titol", "subtitol"];
   }
@@ -43,10 +43,10 @@ class AppBoardSize extends HTMLElement {
   render() {
     const titol = this.getAttribute("titol") || "Tria la mida del tauler";
     const subtitol =
-      this.getAttribute("subtitol") ||
+    this.getAttribute("subtitol") ||
       "Selecciona la dificultat del joc segons la mida";
 
-    this.shadowRoot.innerHTML = `
+   const codi = `
       <style>
         .carta {
           background-color: #1a1a1a;
@@ -78,26 +78,30 @@ class AppBoardSize extends HTMLElement {
 
         .size-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+          grid-template-columns: 1fr 1fr;
           gap: 1rem;
           margin-bottom: 1.5rem;
         }
+        .size-grid :nth-child(3){
+          grid-column: 1/3;
+        }
 
         .size-button {
-          background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-          border: 2px solid #4a5568;
+  border: 1px solid hsla(180, 100%, 50%, 0.5);
+  background: hsla(180, 100%, 50%, 0.2);
+  color: hsl(180, 100%, 95%);
+  box-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5);
           border-radius: 8px;
           padding: 1.5rem 1rem;
           cursor: pointer;
           transition: all 0.3s ease;
-          color: #f8f9fa;
           text-align: center;
         }
 
         .size-button:hover {
-          background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
-          border-color: #5fc3e4;
-          box-shadow: 0 0 20px hsla(180, 100%, 50%, 0.3);
+  background: hsla(180, 100%, 50%, 0.3);
+  box-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5);
+            border-color: #5fc3e4;
           transform: translateY(-2px);
         }
 
@@ -164,23 +168,14 @@ class AppBoardSize extends HTMLElement {
         </div>
       </div>
     `;
+    this.shadowRoot.innerHTML = codi;
+
   }
 
   setupEventListeners() {
     const buttons = this.shadowRoot.querySelectorAll(".size-button");
     buttons.forEach((button) => {
-      button.addEventListener("click", this.handleSizeSelection.bind(this));
-    });
-  }
-
-  removeEventListeners() {
-    const buttons = this.shadowRoot.querySelectorAll(".size-button");
-    buttons.forEach((button) => {
-      button.removeEventListener("click", this.handleSizeSelection.bind(this));
-    });
-  }
-
-  handleSizeSelection(event) {
+      button.addEventListener("click", (event) => {
     const button = event.currentTarget;
     const size = button.dataset.size;
     const volum = parseInt(button.dataset.volum);
@@ -194,7 +189,18 @@ class AppBoardSize extends HTMLElement {
     );
 
     window.location.hash = `#game?volum=${volum}`;
+  });
+    });
   }
+
+  removeEventListeners() {
+    const buttons = this.shadowRoot.querySelectorAll(".size-button");
+    buttons.forEach((button) => {
+      button.removeEventListener("click", this.handleSizeSelection.bind(this));
+    });
+  }
+
+  
 }
 
-customElements.define("app-board-size", AppBoardSize);
+customElements.define("app-eleccio-btn", AppEleccioBtn);

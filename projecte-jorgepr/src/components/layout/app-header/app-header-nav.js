@@ -2,6 +2,7 @@
 // import "./styles.scss";
 // import styles from "./styles.scss?inline";
 import { logout } from "../../../services/backendapiservice";
+import { getUsernameUsuari, $getAvatarUsuari } from "../../../services/userSessionService";
 
 class AppHeaderNav extends HTMLElement {
   constructor() {
@@ -11,6 +12,9 @@ class AppHeaderNav extends HTMLElement {
     this._disabled = false;
     this._enllaços = [];
     this._titol = "";
+    this._userNom = "";
+    this._usuariSubscription = null;
+    this._avatarSubsciption = null;
   }
 
   connectedCallback() {
@@ -21,19 +25,73 @@ class AppHeaderNav extends HTMLElement {
       return paraula[0].toUpperCase() + paraula.substring(1).toLowerCase();
     });
     this._titol = this.getAttribute("titol") || "";
+    this._usuari = localStorage.getItem("user");
 
     this.render();
-    this.attachEventListeners();
-  }
+    this.suscripcioNom();
+    this.suscripcioAvatar();
 
-  attachEventListeners() {
-    const logoutBtn = this.querySelector("#logout-btn");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        logout();
-      });
+    this._usuari && this.sessioIniciada();
+  }
+  sessioIniciada() {
+    this.mostrarBtnLogout();
+  }
+  mostrarBtnLogout() {
+    const aux = this.querySelector("#tancar-sessio");
+    if (aux) return;
+
+    const btn = document.createElement("button");
+    btn.setAttribute("id", "tancar-sessio");
+    btn.classList.add("logout-btn");
+    btn.textContent = "Tancar sessió";
+
+    this.querySelector("div.right").appendChild(btn);
+    // .filter((d) => d.clasList.includes("right"))
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      logout();
+    });
+  }
+  actualitzarUserNom(valor) {
+    this.querySelector("#user").textContent = valor;
+  }
+  disconnectedCallback() {
+    if (this._usuariSubscription) {
+      this._usuariSubscription.unsubscribe();
     }
+    if (this._avatarSubsciption) {
+      this._avatarSubsciption.unsubscribe();
+    }
+  }
+  eliminarBotoTancarSessio() {
+    const btn = this.querySelector("#tancar-sessio");
+    if (btn) {
+      btn.remove();
+    }
+  }
+  suscripcioNom() {
+    this._usuariSubscription = getUsernameUsuari().subscribe((u) => {
+      this._userNom = u;
+      if (u) {
+        this.actualitzarUserNom(u);
+        this.mostrarBtnLogout();
+      } else {
+        this.actualitzarUserNom("");
+        this.eliminarBotoTancarSessio();
+      }
+    });
+  }
+  suscripcioAvatar() {
+    this._avatarSubsciption = $getAvatarUsuari().subscribe((url) => {
+    const imgElement = this.querySelector("#userImg img");
+      if (imgElement) {
+        if(url){
+          imgElement.setAttribute('src', url)
+        } else {
+          imgElement.setAttribute('src', "/public/Smiley-Emoticon.png")
+        }
+    }});
   }
 
   render() {
@@ -102,9 +160,11 @@ a.titol {
   color: hsl(180, 100%, 95%);
   font-weight: 700;
   margin: 0.5rem;
+  text-decoration: none;
+  font-size: 1.5rem;
 }
 .avatar {
-  width: 25px;
+  width: fit-content;
   border: 1px solid hsla(180, 100%, 50%, 0.5);
   background: hsla(180, 100%, 50%, 0.2);
   color: hsl(180, 100%, 50%);
@@ -116,7 +176,7 @@ img {
   display: grid;
   align-items: center;
   justify-items: center;
-  width: 100%;
+  width: 2rem;
   border-radius: 50%;
 }
 .logout-btn {
@@ -148,11 +208,10 @@ img {
             </div>
           </div>
           <div class="right">
-            <a href="#profile" id="user" class="username glow-text">${localStorage.getItem("user")? localStorage.getItem("user"): ''}</a>
+            <a href="#profile" id="user" class="username glow-text"></a>
             <div id="userImg" class="avatar glow-effect">
             <img src="/public/Smiley-Emoticon.png">
             </div>
-            ${localStorage.getItem("user_id") ? '<button id="logout-btn" class="logout-btn">Tancar sessió</button>' : ''}
           </div>
         </nav>
 `;
