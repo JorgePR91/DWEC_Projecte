@@ -1,10 +1,17 @@
 @import "bootstrap/scss/bootstrap";
 
 // https://www.eniun.com/resumen-clases-bootstrap-5-cheat-sheet/#7_Textos_en_Bootstrap_5
+
+:root{
+--varVolum: 10;
+
+}
+
 * {
   margin: 0;
   padding: 0;
 }
+
 
 body {
   color: hsl(180, 100%, 95%);
@@ -15,12 +22,14 @@ body {
       hsl(240, 15%, 12%) 100%);
 }
 
+
 #app {
   backdrop-filter: blur(12px);
   position: sticky;
   border-bottom: 1px solid hsl(240, 10%, 20%);
   background: hsla(240, 10%, 12%, 0.5);
 }
+
 
 header {
   backdrop-filter: blur(12px);
@@ -96,6 +105,24 @@ button {
   background: linear-gradient(135deg, hsl(180, 100%, 50%), hsl(160, 100%, 45%));
 }
 
+        .verd-button {
+  border: 1px solid hsla(180, 100%, 50%, 0.5);
+  background: hsla(180, 100%, 50%, 0.2);
+  color: hsl(180, 100%, 95%);
+  box-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5);
+          border-radius: 8px;
+          padding: 1rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: center;
+        }
+
+        .verd-button:hover {
+  background: hsla(180, 100%, 50%, 0.3);
+  box-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5);
+            border-color: #5fc3e4;
+          transform: translateY(-2px);
+        }
 .linked {
   text-decoration: none;
 }
@@ -131,9 +158,11 @@ button {
   text-decoration: underline;
 }
 
-.error {
+[class^="error"] {
   /* .text-danger.small */
-  color: hsl(0, 85%, 60%);
+  //olor: hsl(0, 85%, 60%);
+  text-shadow:   0 0 10px hsla(0, 100%, 70%, 0.5),  /* Más saturado y claro */
+  0 0 20px hsla(0, 70%, 50%, 0.3);  
 
 }
 
@@ -150,14 +179,15 @@ footer p {
   max-width: 100vw;
   max-height: 100vh;
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(var(--varVolum), 1fr);
   background: #444;
 }
 
 .celda {
   padding: 0;
   margin: 0;
-  min-width: 20px;
+  width: 20px;
+  min-width: 5px;
   aspect-ratio: 1;
   overflow: hidden;
   //display: flex;
@@ -179,6 +209,7 @@ footer p {
 }
 
 .serp {
+          border-color: hsla(120, 100%, 35%, 0.9);
   background-color: darkolivegreen;
 }
 
@@ -191,4 +222,27 @@ footer p {
 .glow-text {
   text-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5),
     0 0 20px hsla(180, 100%, 50%, 0.3);
+}
+//DeepSeek
+@keyframes greenToRedToTransparent {
+    0% {
+        /* Estado inicial: verde */
+        border-color: hsla(120, 100%, 35%, 0.9);
+        background: darkolivegreen ;
+        color: hsl(120, 100%, 95%);
+    }
+    50% {
+        /* Punto medio: rojo */
+        background: hsla(0, 100%, 50%, 0.6);
+        color: hsl(0, 100%, 95%);
+    }
+    100% {
+        /* Estado final: transparente */
+        background: hsla(0, 100%, 50%, 0.6);
+        color: hsla(0, 100%, 90%, 0.3);
+    }
+}
+
+.mort {
+    animation: greenToRedToTransparent 0.3s ease forwards;
 }

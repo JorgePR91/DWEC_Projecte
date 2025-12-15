@@ -1,0 +1,51 @@
+Te explico cómo crear el efecto de iluminación (glow) usando CSS puro:
+
+## 1. **Efecto Glow en Texto**
+```css
+.glow-text {
+    text-shadow: 
+        0 0 10px hsl(180, 100%, 50% / 0.5),  /* Resplandor cercano */
+        0 0 20px hsl(180, 100%, 50% / 0.3);  /* Resplandor lejano */
+}
+```
+
+## 2. **Efecto Glow en Contenedores**
+```css
+.glow-effect {
+    box-shadow: 
+        0 0 20px hsl(180, 100%, 50% / 0.3),  /* Sombra cercana */
+        0 0 40px hsl(180, 100%, 50% / 0.1);  /* Sombra lejana difusa */
+}
+```
+
+## 3. **Efecto Glow en Botones (con hover)**
+```css
+.button-glow {
+    box-shadow: 0 0 20px hsl(180, 100%, 50% / 0.4);
+    transition: all 0.2s;
+}
+
+.button-glow:hover {
+    box-shadow: 0 0 30px hsl(180, 100%, 50% / 0.6);
+    transform: translateY(-2px);
+}
+```
+
+## 4. **Parámetros del efecto**
+- **Primer valor** (0): desplazamiento horizontal
+- **Segundo valor** (0): desplazamiento vertical  
+- **Tercer valor** (10px/20px/40px): radio de difuminado (más grande = más difuso)
+- **Color HSL**: `hsl(180, 100%, 50%)` = cyan brillante
+  - 180 = tono (cyan)
+  - 100% = saturación
+  - 50% = luminosidad
+  - `/0.5` o `/0.3` = opacidad (transparencia)
+
+## 5. **Colores gaming típicos**
+```css
+--cyan-glow: hsl(180, 100%, 50%);    /* Cyan/Aqua */
+--purple-glow: hsl(280, 85%, 60%);   /* Púrpura */
+--green-glow: hsl(160, 100%, 45%);   /* Verde */
+```
+
+**Tip**: Usa múltiples capas de `text-shadow` o `box-shadow` separadas por comas para crear efectos más intensos y realistas.
