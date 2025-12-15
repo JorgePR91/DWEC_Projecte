@@ -1,4 +1,5 @@
 import { login } from "../../../services/backendapiservice";
+import styles from "../../../style.scss?inline";
 
 class AppLogin extends HTMLElement {
   constructor() {
@@ -12,6 +13,7 @@ class AppLogin extends HTMLElement {
   setElements() {
     this._formPerfil = this.shadowRoot.querySelector("#form-login");
     this._enviarBtn = this._formPerfil.querySelector("#enviarBtn");
+    this._inputFile = this._formPerfil.querySelector("#inputFile");
   }
 
   connectedCallback() {
@@ -31,6 +33,9 @@ class AppLogin extends HTMLElement {
         const res = await this.actionLogin(objForm);
 
         console.log(res);
+
+        // Redirigir a la página principal tras login exitoso
+        window.location.hash = "#game";
       } catch (e) {
         console.log("error peticio");
 
@@ -108,14 +113,12 @@ class AppLogin extends HTMLElement {
     return valid;
   }
 
-  errorAPI(error) {
-    console.log("error d");
-    console.log(error);
+  /*errorAPI(error) {
 
     //Aconsellat per la IA al corregir la pàgina, no gestionava els errors de Supabase
-    if (error.msg?.includes("Invalid email")) {
+    if (error.message?.includes("Invalid email")) {
       this.mostrarError("email", "Email invàlid");
-    } else if (error.msg?.includes("Password")) {
+    } else if (error.message?.includes("Password")) {
       this.mostrarError("password", "Contrasenya massa dèbil");
     } else if (error.error_code.includes("invalid_credentials")) {
       this.errorGeneral("Credencials errònies.");
@@ -123,15 +126,36 @@ class AppLogin extends HTMLElement {
       // Error genèric
       this.errorGeneral("Error al registrar-se. Torna-ho a intentar.");
     }
+  }*/
+
+      errorAPI(error) {
+    console.log(`Export API ${error}`);
+    console.log(error);
+    
+    //De vegades enviem error com a missatge, de vegades enviem error com a objecte error.
+    const errorMessage = error.message || error;
+    
+    if (errorMessage.includes("Login invalido") || errorMessage.includes("UNAUTHORIZED")) {
+      this.errorGeneral("Credencials errònies.");
+    } else {
+      this.errorGeneral("Error al iniciar sessió. Torna-ho a intentar.");
+    }
   }
 
+
   render() {
+    this.shadowRoot.innerHTML = "";
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
+    this.shadowRoot.appendChild(link);
+
     const codi = `
   <div class="card bg-dark text-light border-secondary glow-effect cardClass p-4">
             <div class="card-header">
                 <h3 class="card-title glow-text fw-bold">Benvingut de nou!</h3>
                 <p class="card-description">Introdueix les teues credencials per a jugar</p>
-                <div id="error-general" class="alert alert-danger d-none"></div>
             </div>
             <div class="card-content">
                 <form id="form-login" class="d-flex flex-column gap-2" >
@@ -145,7 +169,6 @@ class AppLogin extends HTMLElement {
                             placeholder="player@iogame.com"
                             required
                         />
-                        <span class="error-message d-none" id="error-email"></span>
                     </div>
                     <div class="form-group mb-4">
                         <label class="label" for="password">Password</label>
@@ -157,9 +180,8 @@ class AppLogin extends HTMLElement {
                             placeholder="••••••••"
                             required
                         />
-                    <span class="error-message d-none" id="error-password"></span>
                     </div>
-                    <button id="enviarBtn" class="button btn btn-primary w-100 fw-bold">Login</button>
+                    <button type="submit" id="enviarBtn" class="button btn btn-primary w-100 fw-bold">Login</button>
                     <p class="text-center">
                         Don't have an account? 
                         <a href="#register" class="badge badge-dark linked">Registra't ací</a>
@@ -168,9 +190,13 @@ class AppLogin extends HTMLElement {
             </div>
         </div>
   `;
-    //Tot el shadowRoot perquè ja és un element html que es pot fer append
-    this.shadowRoot.innerHTML = codi;
-    return this;
+    const template = document.createElement("template");
+    template.innerHTML = codi;
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+
+    const styleSheets = new CSSStyleSheet();
+    styleSheets.replaceSync(styles);
+    this.shadowRoot.adoptedStyleSheets = [styleSheets];
   }
 }
 

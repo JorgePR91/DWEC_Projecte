@@ -1,6 +1,7 @@
 // import * as bootstrap from "bootstrap";
 // import "./styles.scss";
 // import styles from "./styles.scss?inline";
+import { logout } from "../../../services/backendapiservice";
 
 class AppHeaderNav extends HTMLElement {
   constructor() {
@@ -9,12 +10,11 @@ class AppHeaderNav extends HTMLElement {
     this._actiu = null;
     this._disabled = false;
     this._enllaços = [];
-    this._titol = '';
-
+    this._titol = "";
   }
 
   connectedCallback() {
-      const auxiliarEnllaços = this.getAttribute("enllaços") || "";
+    const auxiliarEnllaços = this.getAttribute("enllaços") || "";
 
     this._enllaços = auxiliarEnllaços.split(",").map((e) => {
       let paraula = e.trim();
@@ -23,7 +23,17 @@ class AppHeaderNav extends HTMLElement {
     this._titol = this.getAttribute("titol") || "";
 
     this.render();
-    // this.attachEventListeners();
+    this.attachEventListeners();
+  }
+
+  attachEventListeners() {
+    const logoutBtn = this.querySelector("#logout-btn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        logout();
+      });
+    }
   }
 
   render() {
@@ -109,6 +119,21 @@ img {
   width: 100%;
   border-radius: 50%;
 }
+.logout-btn {
+  cursor: pointer;
+  border: 1px solid hsla(180, 100%, 50%, 0.5);
+  background: hsla(180, 100%, 50%, 0.2);
+  color: hsl(180, 100%, 95%);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-left: 1rem;
+}
+.logout-btn:hover {
+  background: hsla(180, 100%, 50%, 0.3);
+  box-shadow: 0 0 10px hsla(180, 100%, 50%, 0.5);
+}
         </style>
         <nav>
           <div class="left">
@@ -123,10 +148,11 @@ img {
             </div>
           </div>
           <div class="right">
-            <span id="user" class="username glow-text">${localStorage.getItem("user")}</span>
+            <a href="#profile" id="user" class="username glow-text">${localStorage.getItem("user")? localStorage.getItem("user"): ''}</a>
             <div id="userImg" class="avatar glow-effect">
             <img src="/public/Smiley-Emoticon.png">
             </div>
+            ${localStorage.getItem("user_id") ? '<button id="logout-btn" class="logout-btn">Tancar sessió</button>' : ''}
           </div>
         </nav>
 `;

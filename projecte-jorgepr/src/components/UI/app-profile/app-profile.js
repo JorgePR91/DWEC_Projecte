@@ -4,19 +4,19 @@ import {
   actualitzar,
   getImage,
 } from "../../../services/backendapiservice";
+import styles from "../../../style.scss?inline";
 
 class AppProfile extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-
+    this._titol = "";
+    this._subtitol = "";
     this._formPerfil = "";
     this._formImg = "";
     this._canvas = "";
     this._inputFile = "";
     this._enviarBtn = "";
-
-    this.afegirEstils();
   }
 
   setElements() {
@@ -25,6 +25,8 @@ class AppProfile extends HTMLElement {
     this._canvas = this.shadowRoot.querySelector("#imgCanva");
     this._inputFile = this._formImg.querySelector('input[type="file"]');
     this._enviarBtn = this._formPerfil.querySelector("#enviarBtn");
+    this._titol = this.getAttribute("titol");
+    this._subtitol = this.getAttribute("subtitol");
   }
 
   afegirEstils() {
@@ -589,93 +591,101 @@ footer p {
   }
 
   render() {
+    this.shadowRoot.innerHTML = "";
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href =
+      "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css";
+    this.shadowRoot.appendChild(link);
+
+    const esRegistre = this._titol === "Uneix-te al joc";
+    const esPerfil = this._titol === "Perfil";
+
     const codi = `
-     <div class="card bg-dark text-light border-secondary glow-effect p-4">
-      <div class="card-header">
-        <h3 class="card-title glow-text fw-bold">Uneix-te al joc</h3>
-        <p class="card-description">Crea't uncompte per a començar a jugar</p>
-        <div id="error-general" class="alert alert-danger d-none"></div>
-      </div>
-      <div class="card-content d-flex gap-3">
-        <form id="profile_register" class="col-6 form d-flex flex-column gap-3">
-          <div class="form-group">
-            <label class="label" for="username">Username</label>
-            <input
-              class="input form-control bg-dark text-light border-secondary"
-              id="username"
-              name="username"
-              type="text"
-              placeholder=""
-              required
-            />
-            <span class="error-message d-none" id="error-username"></span>
-          </div>
-          <div class="form-group">
-            <label class="label" for="email">Email</label>
-            <input
-              class="input form-control bg-dark text-light border-secondary"
-              id="email"
-              name="email"
-              type="email"
-              placeholder=""
-              required
-            />
-            <span class="error-message d-none" id="error-email"></span>
-          </div>
-          <div class="form-group">
-            <label class="label" for="password">Password</label>
-            <input
-              class="input form-control bg-dark text-light border-secondary"
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              required
-            />
-            <span class="error-message d-none" id="error-password"></span>
-          </div>
-          <div class="form-group">
-            <label class="label" for="confirmPassword">Confirm Password</label>
-            <input
-              class="input form-control bg-dark text-light border-secondary"
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="••••••••"
-              required
-            />
-            <span
-              class="error-message d-none"
-              id="error-confirmPassword"
-            ></span>
-          </div>
-          <button
-            id="enviarBtn"
-            type="submit"
-            class="button btn btn-primary w-100 fw-bold"
-          >
-            Register
-          </button>
-          <p class="text-center">
-            Ja tens un compte?
-            <a href="#login" class="badge badge-dark linked">Inicia sessió</a>
-          </p>
-        </form>
-        <form id="imgForm">
-          <div class="col-6 d-flex flex-column align-items-center">
-            <canvas
-              id="imgCanva"
-              class="border border-2 border-primary rounded-circle m-4"
-            ></canvas>
-            <input type="file" class="input w-50" />
-          </div>
-        </form>
-      </div>
-    </div>
+    <div class="card bg-dark text-light border-secondary glow-effect p-4">
+            <div class="card-header">
+                <h3 class="card-title glow-text fw-bold">${this._titol || "Uneix-te al joc"}</h3>
+                <p class="card-description">${this._subtitol || "Crea't un compte per a començar a jugar"}</p>
+            </div>
+            ${esPerfil ? `
+              <div class="card-content mb-3">
+                <a href="#partides" class="btn btn-primary w-100 mb-2">
+                  📋 Gestionar les meues partides
+                </a>
+              </div>
+            ` : ''}
+            <div class="card-content d-flex gap-3">
+                <form id="profile_register" class="col-6 form d-flex flex-column gap-3" >
+        
+                    <div class="form-group ">
+                        <label class="label" for="username">Username</label>
+                        <input 
+                            class="input form-control bg-dark text-light border-secondary" 
+                            id="username" 
+                            name="username"
+                            type="text" 
+                            placeholder="PlayerOne"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="label" for="email">Email</label>
+                        <input 
+                            class="input form-control bg-dark text-light border-secondary" 
+                            id="email" 
+                            name="email"
+                            type="email" 
+                            placeholder="player@iogame.com"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="label" for="password">Password</label>
+                        <input 
+                            class="input form-control bg-dark text-light border-secondary" 
+                            id="password" 
+                            name="password"
+                            type="password" 
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label class="label" for="confirmPassword">Confirm Password</label>
+                        <input 
+                            class="input form-control bg-dark text-light border-secondary" 
+                            id="confirmPassword"
+                            name="confirmPassword" 
+                            type="password" 
+                            placeholder="••••••••"
+                            required
+                        />
+                        <span class="error" id="error-message" style="display: none;"></span>
+                    </div>
+                    <button id="enviarBtn" type="submit" class="button btn btn-primary w-100 fw-bold">Register</button>
+                    <p class="text-center">
+                        Ja tens un compte? 
+                        <a href="#login" class="badge badge-dark linked">Inicia sessió</a>
+                    </p>
+                </form>
+                <form id="imgForm">
+                <div class="col-6 d-flex flex-column align-items-center">
+                <canva id="imgCanva" class="border border-2 border-primary rounded-circle m-4"></canva>
+                <input type="file" class="input w-50">
+                </div>
+                </form>
+            </div>
+        </div>
     `;
+    const template = document.createElement("template");
+    template.innerHTML = codi;
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
     //Tot el shadowRoot perquè ja és un element html que es pot fer append
-    this.shadowRoot.innerHTML = codi;
-    return this;
+    // this.shadowRoot.innerHTML = codi;
+
+    const styleSheets = new CSSStyleSheet();
+    styleSheets.replaceSync(styles);
+    this.shadowRoot.adoptedStyleSheets = [styleSheets];
   }
 }
 

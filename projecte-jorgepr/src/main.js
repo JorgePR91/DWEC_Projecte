@@ -6,6 +6,9 @@ import { renderFooter } from "./components/footer";
 import "./components/layout/app-header/app-header-nav";
 import "./components/UI/app-profile/app-profile";
 import "./components/UI/app-login/app-login";
+import "./components/UI/app-game/app-game";
+import "./components/UI/app-eleccio-btn/app-eleccio-btn";
+import "./components/UI/app-partides-list/app-partides-list";
 import "./style.scss";
 
 document.addEventListener("DOMContentLoaded", async () => {

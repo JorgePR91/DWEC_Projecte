@@ -11,6 +11,11 @@ export {
   getSessio,
   actualitzar,
   getImage,
+  guardarPartida,
+  obtenirPartides,
+  obtenirPartida,
+  eliminarPartida,
+  logout,
 };
 //import * from './userSessionService.js';
 import {
@@ -165,7 +170,7 @@ const login = async (dadesUsuari) => {
     refresh_token: resultat.refresh_token,
     user_email: resultat.user.email,
     user: userData.username,
-    user_id: userData.user.id,
+    user_id: resultat.user.id,
     user_avatar: userData.imgSRC,
     user_games: [],
   };
@@ -179,13 +184,36 @@ const getSessio = () => {
   return localStorage.getItem("user_id");
 };
 
+// [x] Mètode per a tancar sessió
+// entrada: cap
+// internament: neteja el localStorage i revoca les URLs de blobs per alliberar memòria
+// eixida: void
+const logout = () => {
+  // Revocar URLs de blobs per alliberar memòria
+  const avatarUrl = localStorage.getItem("user_avatar");
+  if (avatarUrl && avatarUrl.startsWith("blob:")) {
+    URL.revokeObjectURL(avatarUrl);
+  }
+
+  // Netejar localStorage
+  localStorage.clear();
+
+  // Redirigir a login
+  window.location.hash = "#login";
+};
+
 // [x]  Mètode de singin guardant la info en localStorage
 const registrarSe = async (dadesUsuari) => {
   const resultat = await sendSupabase(
     singUpUrl,
     peticioPost({ body: dadesUsuari })
   );
-  if (resultat.status !== 200) throw resultat;
+
+  if (!resultat || !resultat.user) {
+    throw new Error("Error al registrar-se: resposta incompleta del servidor");
+  }
+
+  return resultat;
 };
 
 const actualitzar = async ({ id, dadesUsuari }) => {
@@ -267,6 +295,171 @@ const getImage = async (fileUrl) => {
   } catch (error) {
     console.error("Error cargando imagen:", error);
     return null;
+  }
+};
+
+/**
+ * Guarda una partida en la base de datos
+ * Si ya existe una partida activa del usuario, la sobrescribe
+ * @param {Object} dadesPartida - Datos de la partida a guardar
+ * @param {Array} dadesPartida.serp - Array con las posiciones de la serpiente
+ * @param {Object} dadesPartida.poma - Objeto con la posición de la manzana {x, y, estat}
+ * @param {string} dadesPartida.direccio - Dirección actual de la serpiente
+ * @param {number} dadesPartida.punts - Puntuación actual
+ * @param {number} dadesPartida.volum - Tamaño del tablero
+ * @param {string} dadesPartida.user_id - ID del usuario (opcional, se obtiene del localStorage)
+ * @returns {Promise<Object>} Resultado de la inserción o actualización
+ */
+const guardarPartida = async (dadesPartida) => {
+  const userId = dadesPartida.user_id || localStorage.getItem("user_id");
+  const token = localStorage.getItem("access_token");
+
+  if (!userId || !token) {
+    throw new Error("No hi ha sessió d'usuari activa");
+  }
+
+  // Preparar los datos para insertar/actualizar en Supabase
+  const partidaData = {
+    user_id: userId,
+    serp: dadesPartida.serp,
+    poma: dadesPartida.poma,
+    direccio: dadesPartida.direccio,
+    punts: dadesPartida.punts,
+    volum: dadesPartida.volum,
+    data_guardat: new Date().toISOString(),
+  };
+
+  try {
+    // Primero comprobamos si ya existe una partida activa
+    const partidesExistents = await sendSupabase(
+      `${supaUrl}/rest/v1/partides?user_id=eq.${userId}&volum=eq.${dadesPartida.volum}&select=id`,
+      peticioGet({
+        headerData: { Authorization: `Bearer ${token}` }
+      })
+    );
+
+    let resultat;
+
+    if (partidesExistents && partidesExistents.length > 0) {
+      // Actualizar partida existente
+      const partidaId = partidesExistents[0].id;
+      resultat = await sendSupabase(
+        `${supaUrl}/rest/v1/partides?id=eq.${partidaId}`,
+        peticioPatch({
+          headerData: {
+            Authorization: `Bearer ${token}`,
+            Prefer: "return=representation"
+          },
+          body: partidaData
+        })
+      );
+      console.log("Partida actualitzada amb èxit:", resultat);
+    } else {
+      // Insertar nueva partida
+      resultat = await sendSupabase(
+        `${supaUrl}/rest/v1/partides`,
+        peticioPost({
+          headerData: {
+            Authorization: `Bearer ${token}`,
+            Prefer: "return=representation"
+          },
+          body: partidaData
+        })
+      );
+      console.log("Partida nova guardada amb èxit:", resultat);
+    }
+
+    return resultat;
+  } catch (error) {
+    console.error("Error guardant la partida:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene las partidas guardadas del usuario logueado
+ * @param {string} userId - ID del usuario (opcional, se obtiene del localStorage)
+ * @returns {Promise<Array>} Array con las partidas del usuario
+ */
+const obtenirPartides = async (userId = null) => {
+  const user_id = userId || localStorage.getItem("user_id");
+  const token = localStorage.getItem("access_token");
+
+  if (!user_id || !token) {
+    throw new Error("No hi ha sessió d'usuari activa");
+  }
+
+  try {
+    const resultat = await sendSupabase(
+      `${supaUrl}/rest/v1/partides?user_id=eq.${user_id}&select=id,punts,volum,direccio,data_guardat&order=data_guardat.desc`,
+      peticioGet({
+        headerData: { Authorization: `Bearer ${token}` }
+      })
+    );
+
+    return resultat || [];
+  } catch (error) {
+    console.error("Error obtenint les partides:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene una partida específica con todos sus datos
+ * @param {number} partidaId - ID de la partida
+ * @returns {Promise<Object>} Datos completos de la partida
+ */
+const obtenirPartida = async (partidaId) => {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    throw new Error("No hi ha sessió d'usuari activa");
+  }
+
+  try {
+    const resultat = await sendSupabase(
+      `${supaUrl}/rest/v1/partides?id=eq.${partidaId}&select=*`,
+      peticioGet({
+        headerData: { Authorization: `Bearer ${token}` }
+      })
+    );
+
+    if (!resultat || resultat.length === 0) {
+      throw new Error("Partida no trobada");
+    }
+
+    return resultat[0];
+  } catch (error) {
+    console.error("Error obtenint la partida:", error);
+    throw error;
+  }
+};
+
+/**
+ * Elimina una partida de la base de datos
+ * @param {number} partidaId - ID de la partida a eliminar
+ * @returns {Promise<void>}
+ */
+const eliminarPartida = async (partidaId) => {
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    throw new Error("No hi ha sessió d'usuari activa");
+  }
+
+  try {
+    await sendSupabase(
+      `${supaUrl}/rest/v1/partides?id=eq.${partidaId}`,
+      {
+        method: "DELETE",
+        headers: crearHeader({ Authorization: `Bearer ${token}` })
+      }
+    );
+
+    console.log("Partida eliminada amb èxit");
+  } catch (error) {
+    console.error("Error eliminant la partida:", error);
+    throw error;
   }
 };
 
