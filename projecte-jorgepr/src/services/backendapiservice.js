@@ -235,7 +235,6 @@ const registrarSe = async (dadesUsuari) => {
 const actualitzar = async ({ id, dadesUsuari }) => {
   let avatar = null;
   if (dadesUsuari.avatar) {
-
     const resultatImg = await updateImg({ id, dadesUsuari });
 
     if (resultatImg.error) {
@@ -253,16 +252,13 @@ const actualitzar = async ({ id, dadesUsuari }) => {
   const resultatPerfil = await updateUser({ id, dadesUsuari });
 
   if (resultatPerfil.error) {
-
     throw resultatPerfil;
   }
 
   if (dadesUsuari.username) {
-
     actualitzarAtributUsuari({ atribut: "user", value: dadesUsuari.username });
   }
   if (avatar) {
-
     const nouAvatar = await getImage(avatar);
 
     actualitzarAtributUsuari({
@@ -278,18 +274,17 @@ const updateUser = async ({ id, dadesUsuari }) => {
   const token = localStorage.getItem("access_token");
   const resultat = await sendSupabase(
     `${supaUrl}/rest/v1/profiles?id=eq.${id}`,
-    peticioPatch({ 
-      headerData: { 
+    peticioPatch({
+      headerData: {
         Authorization: `Bearer ${token}`,
-        Prefer: "return=representation"
-      }, 
-      body: dadesUsuari 
+        Prefer: "return=representation",
+      },
+      body: dadesUsuari,
     })
   );
 
   return resultat;
 };
-
 
 // [x] Mètode per a actualitzar Imatge
 //dadesUsuari.avatar!!!!!!!!!!!!!!!!!!!!!!!!

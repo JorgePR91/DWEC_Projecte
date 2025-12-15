@@ -12,18 +12,7 @@ import "./components/UI/app-partides-list/app-partides-list";
 import "./style.scss";
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // window.addEventListener("error", (e) => {
-  //   console.error("❌ Error atrapado globalmente:", e.error || e.message);
-  // });
 
-  // window.addEventListener("unhandledrejection", (e) => {
-  //   console.error("❌ Error en promesa no manejada:", e.reason);
-  // });
-
-  //const appDiv = document.querySelector('#app');
-
-  //const menuDiv = document.querySelector("#menu");
-  //menuDiv.innerHTML = renderHeader();
   const footerDiv = document.querySelector("#footer");
   footerDiv.innerHTML = renderFooter();
 
